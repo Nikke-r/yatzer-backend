@@ -125,7 +125,7 @@ var userModel_1 = __importDefault(require("./models/userModel"));
                 server_1.applyMiddleware({ app: app });
                 httpServer = http_1.default.createServer(app);
                 server_1.installSubscriptionHandlers(httpServer);
-                httpServer.listen(3001, function () { return console.log("Server running! GraphQL playground: http://localhost:3001" + server_1.graphqlPath + " | Subscription path: ws://localhost:3001" + server_1.subscriptionsPath); });
+                httpServer.listen((process.env.PORT || 3001), function () { return console.log("Server running! GraphQL playground: http://localhost:3001" + server_1.graphqlPath + " | Subscription path: ws://localhost:3001" + server_1.subscriptionsPath); });
                 return [3 /*break*/, 4];
             case 3:
                 error_1 = _a.sent();

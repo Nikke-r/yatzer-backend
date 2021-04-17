@@ -65,7 +65,7 @@ import { PublicUser } from './types';
         const httpServer = http.createServer(app);
         server.installSubscriptionHandlers(httpServer);
 
-        httpServer.listen(3001, () => console.log(`Server running! GraphQL playground: http://localhost:3001${server.graphqlPath} | Subscription path: ws://localhost:3001${server.subscriptionsPath}`));
+        httpServer.listen((process.env.PORT || 3001), () => console.log(`Server running! GraphQL playground: http://localhost:3001${server.graphqlPath} | Subscription path: ws://localhost:3001${server.subscriptionsPath}`));
     } catch (error) {
         console.log(`Error while starting the server: ${error.message}`);
     }
