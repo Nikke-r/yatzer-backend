@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "tsc",
     "dev": "ts-node-dev server.ts",
-    "start": "node /build/server.js"
+    "start": "node ./build/server.js"
   },
   "author": "Niklas Rönnholm",
   "license": "GPL-3.0",
