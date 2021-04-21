@@ -16,6 +16,8 @@ export default gql`
     }
 
     extend type Query {
+        getUser(username: String!): User
+        getOnlineUsers: [User!]!
         getAllUsers: [User!]!
         currentUser: User
         signIn(username: String!, password: String!): User

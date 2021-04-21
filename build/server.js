@@ -48,8 +48,6 @@ var resolvers_1 = __importDefault(require("./graphql/resolvers"));
 var authentication_1 = require("./passport/authentication");
 var cors_1 = __importDefault(require("cors"));
 var http_1 = __importDefault(require("http"));
-var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-var userModel_1 = __importDefault(require("./models/userModel"));
 (function () { return __awaiter(void 0, void 0, void 0, function () {
     var app, server_1, httpServer, error_1;
     return __generator(this, function (_a) {
@@ -94,29 +92,13 @@ var userModel_1 = __importDefault(require("./models/userModel"));
                     },
                     subscriptions: {
                         onConnect: function (connectionParams) { return __awaiter(void 0, void 0, void 0, function () {
-                            var user, error_3;
                             return __generator(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0:
-                                        _a.trys.push([0, 3, , 4]);
-                                        if (!connectionParams.token) {
-                                            throw new apollo_server_express_1.AuthenticationError('Not authenticated');
-                                        }
-                                        if (!process.env.JWT_SECRET) return [3 /*break*/, 2];
-                                        user = jsonwebtoken_1.default.verify(connectionParams.token, process.env.JWT_SECRET);
-                                        return [4 /*yield*/, userModel_1.default.findOneAndUpdate({ username: user.username }, { status: 'online' })];
-                                    case 1:
-                                        _a.sent();
-                                        _a.label = 2;
-                                    case 2: return [3 /*break*/, 4];
-                                    case 3:
-                                        error_3 = _a.sent();
-                                        throw new Error("Error on WebSocket connection: " + error_3.message);
-                                    case 4: return [2 /*return*/];
+                                if (!connectionParams.token) {
+                                    throw new apollo_server_express_1.AuthenticationError('Not authenticated');
                                 }
+                                return [2 /*return*/];
                             });
                         }); },
-                        onDisconnect: function () { return console.log('Disconnected'); },
                     },
                 });
                 return [4 /*yield*/, server_1.start()];

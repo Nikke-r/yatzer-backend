@@ -56,19 +56,10 @@ var userModel_1 = __importDefault(require("../../models/userModel"));
 var pubsub_1 = __importDefault(require("../pubsub"));
 exports.default = {
     Query: {
-        getAllUsers: function () { return userModel_1.default.find({}); },
-        currentUser: function (_parent, _args, context) { return __awaiter(void 0, void 0, void 0, function () {
-            var currentUser;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, userModel_1.default.findOne({ username: context.user.username }).populate('games')];
-                    case 1:
-                        currentUser = _a.sent();
-                        console.log(currentUser);
-                        return [2 /*return*/, currentUser];
-                }
-            });
-        }); },
+        getUser: function (_parent, args) { return userModel_1.default.findOne({ username: args.username }, '-password').populate('games'); },
+        getOnlineUsers: function () { return userModel_1.default.find({}, '-password').where('status').equals('online').populate('games'); },
+        getAllUsers: function () { return userModel_1.default.find({}).populate('games'); },
+        currentUser: function (_parent, _args, context) { return userModel_1.default.findOne({ username: context.user.username }, '-password').populate('games'); },
         signIn: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
             var req, res, loginResponse, error_1;
             return __generator(this, function (_a) {
@@ -101,7 +92,8 @@ exports.default = {
                     case 1:
                         hashedPassword = _a.sent();
                         createdAt = Date.now();
-                        user = new userModel_1.default({ username: username, createdAt: createdAt, password: hashedPassword, games: [] });
+                        user = new userModel_1.default({ username: username, createdAt: createdAt, password: hashedPassword, games: [], admin: false });
+                        delete user.password;
                         return [2 /*return*/, user.save()];
                     case 2:
                         error_2 = _a.sent();
@@ -112,13 +104,13 @@ exports.default = {
         }); }
     },
     ScoreboardColumn: {
-        player: function (parent) { return userModel_1.default.findById(parent.player); }
+        player: function (parent) { return userModel_1.default.findById(parent.player, '-password'); }
     },
     InTurnPlayer: {
-        player: function (parent) { return userModel_1.default.findById(parent.player); }
+        player: function (parent) { return userModel_1.default.findById(parent.player, '-password'); }
     },
     ChatMessage: {
-        user: function (parent) { return userModel_1.default.findById(parent.user); }
+        user: function (parent) { return userModel_1.default.findById(parent.user, '-password'); }
     },
     Subscription: {
         userDataChanged: {

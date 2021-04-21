@@ -55,7 +55,7 @@ exports.default = {
     },
     Mutation: {
         createGame: function (_parent, _args, context) { return __awaiter(void 0, void 0, void 0, function () {
-            var slug, dices, gameColumn, newGame, error_1;
+            var slug, dices, gameColumn, createdAt, newGame, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -65,6 +65,7 @@ exports.default = {
                         slug = helpers_1.createSlug();
                         dices = helpers_1.createGameDices(5);
                         gameColumn = helpers_1.createScoreboardColumn(context.user);
+                        createdAt = Date.now();
                         newGame = new gameModel_1.default({
                             slug: slug,
                             dices: dices,
@@ -72,9 +73,11 @@ exports.default = {
                             inTurn: {
                                 player: context.user._id,
                                 numberOfThrows: 0,
+                                rolling: false,
                             },
                             status: 'created',
                             messages: [],
+                            createdAt: createdAt,
                         });
                         if (context.user.games) {
                             context.user.games = context.user.games.concat(newGame);
@@ -85,6 +88,7 @@ exports.default = {
                         return [4 /*yield*/, context.user.save()];
                     case 1:
                         _a.sent();
+                        pubsub_1.default.publish(context.user.username, { userDataChanged: context.user });
                         return [2 /*return*/, newGame.save()];
                     case 2:
                         error_1 = _a.sent();
@@ -108,6 +112,8 @@ exports.default = {
                             throw new Error("Game with slug: " + args.slug + " not found!");
                         if (game.scoreboard.length >= 5)
                             throw new Error('Game is already full');
+                        if (game.status === types_1.GameStatus.Started)
+                            throw new Error('Game is already running');
                         if (game.scoreboard.find(function (player) { return player.player.username === context.user.username; }))
                             return [2 /*return*/];
                         gameColumn = helpers_1.createScoreboardColumn(context.user);
@@ -118,6 +124,7 @@ exports.default = {
                         return [4 /*yield*/, context.user.save()];
                     case 2:
                         _a.sent();
+                        pubsub_1.default.publish(context.user.username, { userDataChanged: context.user });
                         pubsub_1.default.publish(args.slug, { gameDataChanged: game });
                         return [2 /*return*/, game.save()];
                     case 3:
@@ -146,9 +153,12 @@ exports.default = {
                             throw new Error('All three throws have been used!');
                         if (game.status === 'created')
                             game.status = types_1.GameStatus.Started;
+                        game.inTurn.rolling = true;
+                        pubsub_1.default.publish(args.slug, { gameDataChanged: game });
                         newDices = helpers_1.rollDices(game.dices);
                         game.dices = newDices;
                         game.inTurn.numberOfThrows = game.inTurn.numberOfThrows + 1;
+                        game.inTurn.rolling = false;
                         pubsub_1.default.publish(args.slug, { gameDataChanged: game });
                         return [2 /*return*/, game.save()];
                     case 2:

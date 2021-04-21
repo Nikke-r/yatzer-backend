@@ -9,6 +9,7 @@ export default gql`
         inTurn: InTurnPlayer!
         status: GameStatus!
         messages: [ChatMessage!]!
+        createdAt: Float!
     }
 
     type ScoreboardColumn {
@@ -30,6 +31,7 @@ export default gql`
     type InTurnPlayer {
         player: User!
         numberOfThrows: Int!
+        rolling: Boolean!
     }
 
     type ChatMessage {

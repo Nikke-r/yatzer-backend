@@ -1,4 +1,4 @@
-import { AuthInputValues, ChatMessage, ContextType, InTurnPlayer, ScoreboardColumn } from "../../types";
+import { AuthInputValues, ChatMessage, ContextType, InTurnPlayer, PublicUser, ScoreboardColumn } from "../../types";
 import { login } from "../../passport/authentication";
 import bcrypt from 'bcryptjs';
 import User from '../../models/userModel';
@@ -6,12 +6,10 @@ import pubSub from '../pubsub';
 
 export default {
     Query: {
-        getAllUsers: () => User.find({}),
-        currentUser: async (_parent: unknown, _args: unknown, context: ContextType) => {
-            const currentUser = await User.findOne({ username: context.user.username }).populate('games');
-            console.log(currentUser);
-            return currentUser;
-        },
+        getUser: (_parent: unknown, args: { username: string }) => User.findOne({ username: args.username }, '-password').populate('games'),
+        getOnlineUsers: () => User.find({}, '-password').where('status').equals('online').populate('games'),
+        getAllUsers: () => User.find({}).populate('games'),
+        currentUser: (_parent: unknown, _args: unknown, context: ContextType) => User.findOne({ username: context.user.username }, '-password').populate('games'),
         signIn: async (_parent: unknown, args: AuthInputValues, context: ContextType) => {
             try {
                 const { req, res } = context;
@@ -37,7 +35,9 @@ export default {
 
                 const hashedPassword = await bcrypt.hash(password, 12);
                 const createdAt = Date.now();
-                const user = new User({ username, createdAt, password: hashedPassword, games: [] });
+                const user = new User({ username, createdAt, password: hashedPassword, games: [], admin: false });
+
+                delete user.password;
     
                 return user.save();
             } catch (error) {
@@ -46,17 +46,17 @@ export default {
         }
     },
     ScoreboardColumn: {
-        player: (parent: ScoreboardColumn) => User.findById(parent.player)
+        player: (parent: ScoreboardColumn) => User.findById(parent.player, '-password')
     },
     InTurnPlayer: {
-        player: (parent: InTurnPlayer) => User.findById(parent.player)
+        player: (parent: InTurnPlayer) => User.findById(parent.player, '-password')
     },
     ChatMessage: {
-        user: (parent: ChatMessage) => User.findById(parent.user)
+        user: (parent: ChatMessage) => User.findById(parent.user, '-password')
     },
     Subscription: {
         userDataChanged: {
-            subscribe: (_parent: unknown, args: { username: string }) => pubSub.asyncIterator([args.username])
+            subscribe: (_parent: unknown, args: { username: string }) => pubSub.asyncIterator<PublicUser>([args.username])
         }
     }
 }

@@ -17,7 +17,8 @@ const gameModel = new mongoose.Schema({
             type: Number,
             min: 0,
             max: 3,
-        }
+        },
+        rolling: Boolean,
     },
     scoreboard: [
         {

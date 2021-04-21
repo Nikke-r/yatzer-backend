@@ -1,5 +1,5 @@
 import { AuthenticationError } from "apollo-server-express";
-import { ContextType, GameStatus, DiceSelectionArgs, ScorePostingArgs, NewMessageArgs, ChatMessage, GameArgsBaseType, ScoreboardRowName } from "../../types";
+import { ContextType, GameStatus, DiceSelectionArgs, ScorePostingArgs, NewMessageArgs, ChatMessage, GameArgsBaseType, ScoreboardRowName, GameType } from "../../types";
 import Game from '../../models/gameModel';
 import { createSlug, createGameDices, createScoreboardColumn, rollDices, validateScore, calculateSum, calculateTotal } from "../../utils/helpers";
 import pubSub from '../pubsub';
@@ -17,6 +17,7 @@ export default {
                 const slug = createSlug();
                 const dices = createGameDices(5);
                 const gameColumn = createScoreboardColumn(context.user);
+                const createdAt = Date.now();
 
                 const newGame = new Game({
                     slug,
@@ -25,9 +26,11 @@ export default {
                     inTurn: {
                         player: context.user._id,
                         numberOfThrows: 0,
+                        rolling: false,
                     },
                     status: 'created',
                     messages: [],
+                    createdAt,
                 });
 
                 if (context.user.games) {
@@ -37,6 +40,8 @@ export default {
                 }
                 
                 await context.user.save();
+
+                pubSub.publish(context.user.username, { userDataChanged: context.user });
 
                 return newGame.save();
             } catch (error) {
@@ -52,6 +57,7 @@ export default {
 
                 if (!game) throw new Error(`Game with slug: ${args.slug} not found!`);
                 if (game.scoreboard.length >= 5) throw new Error('Game is already full');
+                if (game.status === GameStatus.Started) throw new Error('Game is already running');
                 if (game.scoreboard.find(player => player.player.username === context.user.username)) return;
                 
                 const gameColumn = createScoreboardColumn(context.user);
@@ -63,6 +69,7 @@ export default {
 
                 await context.user.save();
 
+                pubSub.publish(context.user.username, { userDataChanged: context.user });
                 pubSub.publish(args.slug, { gameDataChanged: game });
 
                 return game.save();
@@ -81,11 +88,15 @@ export default {
                 if (game.inTurn.numberOfThrows >= 3) throw new Error('All three throws have been used!');
                 if (game.status === 'created') game.status = GameStatus.Started;
 
+                game.inTurn.rolling = true;
+                pubSub.publish(args.slug, { gameDataChanged: game });
+
                 const newDices = rollDices(game.dices);
 
                 game.dices = newDices;
                 game.inTurn.numberOfThrows = game.inTurn.numberOfThrows + 1;
 
+                game.inTurn.rolling = false;
                 pubSub.publish(args.slug, { gameDataChanged: game });
 
                 return game.save();
@@ -216,7 +227,7 @@ export default {
     },
     Subscription: {
         gameDataChanged: {
-            subscribe: (_parent: unknown, args: GameArgsBaseType) => pubSub.asyncIterator([args.slug]),
+            subscribe: (_parent: unknown, args: GameArgsBaseType) => pubSub.asyncIterator<GameType>([args.slug]),
         }
     }
 }

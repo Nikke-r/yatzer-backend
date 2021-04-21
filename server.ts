@@ -7,9 +7,6 @@ import resolvers from './graphql/resolvers';
 import { checkAuthentication } from './passport/authentication';
 import cors from 'cors';
 import http from 'http';
-import jwt from 'jsonwebtoken';
-import User from './models/userModel';
-import { PublicUser } from './types';
 
 (async () => {
     try {
@@ -41,21 +38,10 @@ import { PublicUser } from './types';
             },
             subscriptions: {
                 onConnect: async (connectionParams: any) => {
-                    try {
-                        if (!connectionParams.token) {
-                            throw new AuthenticationError('Not authenticated')
-                        } 
-    
-                        if (process.env.JWT_SECRET) {
-                            const user = jwt.verify(connectionParams.token, process.env.JWT_SECRET) as PublicUser;
-
-                            await User.findOneAndUpdate({ username: user.username }, { status: 'online' })
-                        }
-                    } catch (error) {
-                        throw new Error(`Error on WebSocket connection: ${error.message}`);
-                    }
+                    if (!connectionParams.token) {
+                        throw new AuthenticationError('Not authenticated');
+                    } 
                 },
-                onDisconnect: () => console.log('Disconnected'),
             },
         });
 

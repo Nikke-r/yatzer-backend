@@ -7,6 +7,8 @@ export interface DatabaseUser extends Document {
     createdAt: number;
     games?: GameType[];
     status: 'online' | 'offline';
+    admin: boolean;
+    socketId?: string;
 }
 
 export type PublicUser = Omit<DatabaseUser, 'password'>;
@@ -59,6 +61,7 @@ export interface Dice {
 export interface InTurnPlayer {
     player: PublicUser;
     numberOfThrows: number;
+    rolling: boolean;
 }
 
 export interface ChatMessage {
@@ -74,6 +77,7 @@ export interface GameType extends Document {
     inTurn: InTurnPlayer;
     status: GameStatus;
     messages: ChatMessage[];
+    createdAt: number;
 }
 
 export interface AuthInputValues {
@@ -101,4 +105,10 @@ export interface ScorePostingArgs extends GameArgsBaseType {
 
 export interface NewMessageArgs extends GameArgsBaseType {
     message: string;
+}
+
+export interface LobbyType extends Document {
+    name: string;
+    users: PublicUser[];
+    messages: ChatMessage[];
 }

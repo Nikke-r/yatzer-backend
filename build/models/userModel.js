@@ -8,6 +8,7 @@ var userModel = new mongoose_1.default.Schema({
     username: {
         type: String,
         min: 3,
+        max: 15,
         required: true,
         unique: true,
     },
@@ -25,10 +26,13 @@ var userModel = new mongoose_1.default.Schema({
     ],
     status: {
         type: String,
+        default: 'online',
         enum: [
             "online",
             "offline"
         ]
-    }
+    },
+    admin: Boolean,
+    socketId: String
 });
 exports.default = mongoose_1.default.model('User', userModel);

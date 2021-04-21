@@ -104,9 +104,9 @@ var calculatePair = function (dices) {
 var calculateTwoPairs = function (dices) {
     var groupedDiceValue = sortDices(dices);
     var twoPairs = 0;
-    if (groupedDiceValue.size >= 2 && groupedDiceValue.size < 4) {
+    if (groupedDiceValue.size >= 2 && groupedDiceValue.size <= 3) {
         groupedDiceValue.forEach(function (value, key) {
-            if (value >= 2) {
+            if (value >= 2 && value < 4) {
                 twoPairs += key * 2;
             }
         });

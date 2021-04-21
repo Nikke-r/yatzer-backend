@@ -20,7 +20,8 @@ var gameModel = new mongoose_1.default.Schema({
             type: Number,
             min: 0,
             max: 3,
-        }
+        },
+        rolling: Boolean,
     },
     scoreboard: [
         {
