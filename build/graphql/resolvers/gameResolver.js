@@ -139,7 +139,7 @@ exports.default = {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 2, , 3]);
+                        _a.trys.push([0, 3, , 4]);
                         if (!context.user)
                             throw new apollo_server_express_1.AuthenticationError('Not authenticated!');
                         return [4 /*yield*/, gameModel_1.default.findOne({ slug: args.slug }).populate('inTurn.player').populate('scorecard.player').populate('messages.user')];
@@ -158,13 +158,16 @@ exports.default = {
                         newDices = helpers_1.rollDices(game.dices);
                         game.dices = newDices;
                         game.inTurn.numberOfThrows = game.inTurn.numberOfThrows + 1;
+                        return [4 /*yield*/, game.save()];
+                    case 2:
+                        _a.sent();
                         game.inTurn.rolling = false;
                         pubsub_1.default.publish(args.slug, { gameDataChanged: game });
                         return [2 /*return*/, game.save()];
-                    case 2:
+                    case 3:
                         error_3 = _a.sent();
                         throw new Error("Error while rolling the dices: " + error_3.message);
-                    case 3: return [2 /*return*/];
+                    case 4: return [2 /*return*/];
                 }
             });
         }); },
@@ -173,7 +176,7 @@ exports.default = {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 2, , 3]);
+                        _a.trys.push([0, 3, , 4]);
                         if (!context.user)
                             throw new apollo_server_express_1.AuthenticationError('Not authenticated!');
                         return [4 /*yield*/, gameModel_1.default.findOne({ slug: args.slug }).populate('inTurn.player').populate('scorecard.player').populate('messages.user')];
@@ -186,12 +189,15 @@ exports.default = {
                         if (game.inTurn.numberOfThrows === 0)
                             throw new Error('You need to roll dices before you can select them');
                         game.dices[args.diceIndex].selected = !game.dices[args.diceIndex].selected;
-                        pubsub_1.default.publish(args.slug, { gameDataChanged: game });
-                        return [2 /*return*/, game.save()];
+                        return [4 /*yield*/, game.save()];
                     case 2:
+                        _a.sent();
+                        pubsub_1.default.publish(args.slug, { gameDataChanged: game });
+                        return [2 /*return*/, game];
+                    case 3:
                         error_4 = _a.sent();
                         throw new Error("Error while toggling the dice selection: " + error_4.message);
-                    case 3: return [2 /*return*/];
+                    case 4: return [2 /*return*/];
                 }
             });
         }); },

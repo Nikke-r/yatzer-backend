@@ -96,6 +96,8 @@ export default {
                 game.dices = newDices;
                 game.inTurn.numberOfThrows = game.inTurn.numberOfThrows + 1;
 
+                await game.save();
+
                 game.inTurn.rolling = false;
                 pubSub.publish(args.slug, { gameDataChanged: game });
 
@@ -116,9 +118,11 @@ export default {
 
                 game.dices[args.diceIndex].selected = !game.dices[args.diceIndex].selected;
 
+                await game.save();
+
                 pubSub.publish(args.slug, { gameDataChanged: game });
 
-                return game.save();
+                return game;
             } catch (error) {
                 throw new Error(`Error while toggling the dice selection: ${error.message}`);
             }
