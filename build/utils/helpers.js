@@ -105,11 +105,20 @@ var calculateTwoPairs = function (dices) {
     var groupedDiceValue = sortDices(dices);
     var twoPairs = 0;
     if (groupedDiceValue.size >= 2 && groupedDiceValue.size <= 3) {
-        groupedDiceValue.forEach(function (value, key) {
-            if (value >= 2 && value < 4) {
-                twoPairs += key * 2;
-            }
-        });
+        if (groupedDiceValue.size === 3) {
+            groupedDiceValue.forEach(function (value, key) {
+                if (value === 2) {
+                    twoPairs += key * 2;
+                }
+            });
+        }
+        else if (groupedDiceValue.size === 2) {
+            groupedDiceValue.forEach(function (value, key) {
+                if (value >= 2 && value < 4) {
+                    twoPairs += key * 2;
+                }
+            });
+        }
     }
     return twoPairs;
 };

@@ -59,9 +59,31 @@ exports.default = {
         getUser: function (_parent, args) { return userModel_1.default.findOne({ username: args.username }, '-password').populate('games'); },
         getOnlineUsers: function () { return userModel_1.default.find({}, '-password').where('status').equals('online').populate('games'); },
         getAllUsers: function () { return userModel_1.default.find({}).populate('games'); },
-        currentUser: function (_parent, _args, context) { return userModel_1.default.findOne({ username: context.user.username }, '-password').populate('games'); },
+        currentUser: function (_parent, _args, context) { return __awaiter(void 0, void 0, void 0, function () {
+            var user, error_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, userModel_1.default
+                                .findOne({ username: context.user.username }, '-password')
+                                .populate('games')
+                                .populate('friends')
+                                .populate('notifications.from')];
+                    case 1:
+                        user = _a.sent();
+                        if (!user)
+                            throw new Error('User not found');
+                        return [2 /*return*/, user];
+                    case 2:
+                        error_1 = _a.sent();
+                        throw new Error(error_1.message);
+                    case 3: return [2 /*return*/];
+                }
+            });
+        }); },
         signIn: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
-            var req, res, loginResponse, error_1;
+            var req, res, loginResponse, error_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -73,8 +95,8 @@ exports.default = {
                         loginResponse = _a.sent();
                         return [2 /*return*/, __assign(__assign({}, loginResponse.user), { id: loginResponse.user._id, token: loginResponse.token })];
                     case 2:
-                        error_1 = _a.sent();
-                        throw new Error("Error while signing in: " + error_1.message);
+                        error_2 = _a.sent();
+                        throw new Error("Error while signing in: " + error_2.message);
                     case 3: return [2 /*return*/];
                 }
             });
@@ -82,7 +104,7 @@ exports.default = {
     },
     Mutation: {
         signUp: function (_parent, args) { return __awaiter(void 0, void 0, void 0, function () {
-            var username, password, hashedPassword, createdAt, user, error_2;
+            var username, password, hashedPassword, createdAt, user, error_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -96,8 +118,41 @@ exports.default = {
                         delete user.password;
                         return [2 /*return*/, user.save()];
                     case 2:
-                        error_2 = _a.sent();
-                        throw new Error("Error while signing up: " + error_2.message);
+                        error_3 = _a.sent();
+                        throw new Error("Error while signing up: " + error_3.message);
+                    case 3: return [2 /*return*/];
+                }
+            });
+        }); },
+        addFriend: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
+            var currentUser, user, newNotification, error_4;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        currentUser = context.user;
+                        if (!currentUser)
+                            throw new Error('Not authenticated');
+                        return [4 /*yield*/, userModel_1.default.findOne({ username: args.username })];
+                    case 1:
+                        user = _a.sent();
+                        if (!user)
+                            throw new Error('User not found');
+                        newNotification = {
+                            from: currentUser,
+                            message: currentUser.username + " want to be your friend!",
+                        };
+                        if (!user.notifications) {
+                            user.notifications = [newNotification];
+                        }
+                        else {
+                            user.notifications = user.notifications.concat(newNotification);
+                        }
+                        pubsub_1.default.publish(user.username, { userDataChanged: user });
+                        return [2 /*return*/, user.save()];
+                    case 2:
+                        error_4 = _a.sent();
+                        throw new Error("Error while adding a new friend: " + error_4.message);
                     case 3: return [2 /*return*/];
                 }
             });

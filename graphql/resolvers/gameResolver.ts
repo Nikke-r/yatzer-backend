@@ -96,12 +96,13 @@ export default {
                 game.dices = newDices;
                 game.inTurn.numberOfThrows = game.inTurn.numberOfThrows + 1;
 
+                game.inTurn.rolling = false;
+
                 await game.save();
 
-                game.inTurn.rolling = false;
                 pubSub.publish(args.slug, { gameDataChanged: game });
 
-                return game.save();
+                return game;
             } catch (error) {
                 throw new Error(`Error while rolling the dices: ${error.message}`);
             }

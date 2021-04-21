@@ -1,4 +1,4 @@
-import { AuthInputValues, ChatMessage, ContextType, InTurnPlayer, PublicUser, ScoreboardColumn } from "../../types";
+import { AuthInputValues, ChatMessage, ContextType, InTurnPlayer, Notification, PublicUser, ScoreboardColumn } from "../../types";
 import { login } from "../../passport/authentication";
 import bcrypt from 'bcryptjs';
 import User from '../../models/userModel';
@@ -9,7 +9,20 @@ export default {
         getUser: (_parent: unknown, args: { username: string }) => User.findOne({ username: args.username }, '-password').populate('games'),
         getOnlineUsers: () => User.find({}, '-password').where('status').equals('online').populate('games'),
         getAllUsers: () => User.find({}).populate('games'),
-        currentUser: (_parent: unknown, _args: unknown, context: ContextType) => User.findOne({ username: context.user.username }, '-password').populate('games'),
+        currentUser: async (_parent: unknown, _args: unknown, context: ContextType) => {
+            try {
+                const user = await User
+                                    .findOne({ username: context.user.username }, '-password')
+                                    .populate('games')
+                                    .populate('friends')
+                                    .populate('notifications.from');
+                if (!user) throw new Error('User not found');
+
+                return user;
+            } catch (error) {
+                throw new Error(error.message);
+            }
+        },
         signIn: async (_parent: unknown, args: AuthInputValues, context: ContextType) => {
             try {
                 const { req, res } = context;
@@ -42,6 +55,34 @@ export default {
                 return user.save();
             } catch (error) {
                 throw new Error(`Error while signing up: ${error.message}`);
+            }
+        },
+        addFriend: async (_parent: unknown, args: { username: string }, context: ContextType) => {
+            try {
+                const currentUser = context.user;
+
+                if (!currentUser) throw new Error('Not authenticated');
+
+                const user = await User.findOne({ username: args.username });
+
+                if (!user) throw new Error('User not found');
+
+                const newNotification: Notification = {
+                    from: currentUser,
+                    message: `${currentUser.username} want to be your friend!`,
+                }
+
+                if (!user.notifications) {
+                    user.notifications = [newNotification];
+                } else {
+                    user.notifications = user.notifications.concat(newNotification);
+                }
+
+                pubSub.publish(user.username, { userDataChanged: user });
+
+                return user.save();
+            } catch (error) {
+                throw new Error(`Error while adding a new friend: ${error.message}`);
             }
         }
     },

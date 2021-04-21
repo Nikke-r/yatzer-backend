@@ -30,7 +30,25 @@ const userModel = new mongoose.Schema({
         ]
     },
     admin: Boolean,
-    socketId: String
+    socketId: String,
+    friends: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    ],
+    notifications: [
+        {
+            from: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User'
+            },
+            message: {
+                type: String,
+                required: true,
+            }
+        }
+    ]
 });
 
 export default mongoose.model<DatabaseUser>('User', userModel);

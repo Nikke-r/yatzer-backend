@@ -8,6 +8,13 @@ export default gql`
         games: [Game!]!
         token: String
         status: Status!
+        friends: [User!]!
+        notifications: [Notification!]!
+    }
+
+    type Notification {
+        from: User!
+        message: String!
     }
 
     enum Status {
@@ -24,7 +31,8 @@ export default gql`
     }
 
     extend type Mutation {
-        signUp(username: String!, password: String!): User
+        signUp(username: String!, password: String!): User 
+        addFriend(username: String!): User
     }
 
     extend type Subscription {

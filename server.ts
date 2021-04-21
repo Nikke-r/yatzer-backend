@@ -43,6 +43,7 @@ import http from 'http';
                     } 
                 },
             },
+            uploads: false
         });
 
         await server.start();

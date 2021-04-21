@@ -9,6 +9,13 @@ export interface DatabaseUser extends Document {
     status: 'online' | 'offline';
     admin: boolean;
     socketId?: string;
+    friends: PublicUser[];
+    notifications: Notification[];
+}
+
+export interface Notification {
+    from: PublicUser;
+    message: string;
 }
 
 export type PublicUser = Omit<DatabaseUser, 'password'>;

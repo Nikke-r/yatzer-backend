@@ -158,12 +158,12 @@ exports.default = {
                         newDices = helpers_1.rollDices(game.dices);
                         game.dices = newDices;
                         game.inTurn.numberOfThrows = game.inTurn.numberOfThrows + 1;
+                        game.inTurn.rolling = false;
                         return [4 /*yield*/, game.save()];
                     case 2:
                         _a.sent();
-                        game.inTurn.rolling = false;
                         pubsub_1.default.publish(args.slug, { gameDataChanged: game });
-                        return [2 /*return*/, game.save()];
+                        return [2 /*return*/, game];
                     case 3:
                         error_3 = _a.sent();
                         throw new Error("Error while rolling the dices: " + error_3.message);

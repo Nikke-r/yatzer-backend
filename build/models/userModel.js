@@ -33,6 +33,24 @@ var userModel = new mongoose_1.default.Schema({
         ]
     },
     admin: Boolean,
-    socketId: String
+    socketId: String,
+    friends: [
+        {
+            type: mongoose_1.default.Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    ],
+    notifications: [
+        {
+            from: {
+                type: mongoose_1.default.Schema.Types.ObjectId,
+                ref: 'User'
+            },
+            message: {
+                type: String,
+                required: true,
+            }
+        }
+    ]
 });
 exports.default = mongoose_1.default.model('User', userModel);

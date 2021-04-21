@@ -100,6 +100,7 @@ var http_1 = __importDefault(require("http"));
                             });
                         }); },
                     },
+                    uploads: false
                 });
                 return [4 /*yield*/, server_1.start()];
             case 2:
