@@ -19,6 +19,7 @@ import {
     calculateSum, 
     calculateTotal 
 } from "../../utils/helpers";
+import User from '../../models/userModel';
 import pubSub from '../pubsub';
 
 export default {
@@ -29,6 +30,9 @@ export default {
         createGame: async (_parent: unknown, _args: unknown, context: ContextType) => {
             try {
                 if (!context.user) throw new AuthenticationError('Not authenticated!');
+
+                const populatedUser = await User.findByNameAndPopulate(context.user.username);
+                if (!populatedUser) throw new Error('Something went wrong');
 
                 const slug = createSlug();
                 const dices = createGameDices(5);
@@ -49,25 +53,25 @@ export default {
                     createdAt,
                 });
 
-                if (context.user.games) {
-                    context.user.games = context.user.games.concat(newGame);
-                } else {
-                    context.user.games = [newGame];
-                }
+                if (!populatedUser.games) populatedUser.games = [];
+                populatedUser.games = populatedUser?.games.concat(newGame);
                 
-                await context.user.save();
+                await populatedUser.save();
 
-                pubSub.publish(context.user.username, { userDataChanged: context.user });
+                pubSub.publish(populatedUser.username, { userDataChanged: populatedUser });
 
                 return newGame.save();
             } catch (error) {
-                throw new Error(`Error while creating the game: ${error.message}`);
+                throw new Error(error);
             }
         },
         joinGame: async (_parent: unknown, args: GameArgsBaseType, context: ContextType) => {
             try {
 
                 if (!context.user) throw new AuthenticationError('Not authenticated!');
+
+                const populatedUser = await User.findByNameAndPopulate(context.user.username);
+                if (!populatedUser) throw new Error('Something went wrong')
 
                 const game = await Game.findOne({ slug: args.slug }).populate('scoreboard.player');
 
@@ -79,18 +83,17 @@ export default {
                 const gameColumn = createScoreboardColumn(context.user);
                 game.scoreboard = game.scoreboard.concat(gameColumn);
 
-                if (context.user.games) {
-                    context.user.games = context.user.games.concat(game);
-                }
+                if (!populatedUser.games) populatedUser.games = [];
+                populatedUser.games = populatedUser.games.concat(game);
 
-                await context.user.save();
+                await populatedUser.save();
 
-                pubSub.publish(context.user.username, { userDataChanged: context.user });
+                pubSub.publish(populatedUser.username, { userDataChanged: populatedUser });
                 pubSub.publish(args.slug, { gameDataChanged: game });
 
                 return game.save();
             } catch (error) {
-                throw new Error(`Error while joining the game: ${error.message}`);
+                throw new Error(error);
             }
         },
         rollDices: async (_parent: unknown, args: GameArgsBaseType, context: ContextType) => {
@@ -120,7 +123,7 @@ export default {
 
                 return game;
             } catch (error) {
-                throw new Error(`Error while rolling the dices: ${error.message}`);
+                throw new Error(error);
             }
         },
         toggleDiceSelection: async (_parent: unknown, args: DiceSelectionArgs, context: ContextType) => {
@@ -141,7 +144,7 @@ export default {
 
                 return game;
             } catch (error) {
-                throw new Error(`Error while toggling the dice selection: ${error.message}`);
+                throw new Error(error);
             }
         },
         postScore: async (_parent: unknown, args: ScorePostingArgs, context: ContextType) => {
@@ -217,7 +220,7 @@ export default {
 
                 return game.save();
             } catch (error) {
-                throw new Error(`Error posting the score: ${error.message}`);
+                throw new Error(error);
             }
         },
         newMessage: async (_parent: unknown, args: NewMessageArgs, context: ContextType) => {
@@ -242,7 +245,7 @@ export default {
 
                 return game.save();
             } catch (error) {
-                throw new Error(`Error while posting a new message: ${error.message}`);
+                throw new Error(error);
             }
         },
     },

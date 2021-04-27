@@ -48,6 +48,7 @@ var apollo_server_express_1 = require("apollo-server-express");
 var types_1 = require("../../types");
 var gameModel_1 = __importDefault(require("../../models/gameModel"));
 var helpers_1 = require("../../utils/helpers");
+var userModel_1 = __importDefault(require("../../models/userModel"));
 var pubsub_1 = __importDefault(require("../pubsub"));
 exports.default = {
     Query: {
@@ -55,13 +56,18 @@ exports.default = {
     },
     Mutation: {
         createGame: function (_parent, _args, context) { return __awaiter(void 0, void 0, void 0, function () {
-            var slug, dices, gameColumn, createdAt, newGame, error_1;
+            var populatedUser, slug, dices, gameColumn, createdAt, newGame, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 2, , 3]);
+                        _a.trys.push([0, 3, , 4]);
                         if (!context.user)
                             throw new apollo_server_express_1.AuthenticationError('Not authenticated!');
+                        return [4 /*yield*/, userModel_1.default.findByNameAndPopulate(context.user.username)];
+                    case 1:
+                        populatedUser = _a.sent();
+                        if (!populatedUser)
+                            throw new Error('Something went wrong');
                         slug = helpers_1.createSlug();
                         dices = helpers_1.createGameDices(5);
                         gameColumn = helpers_1.createScoreboardColumn(context.user);
@@ -79,34 +85,36 @@ exports.default = {
                             messages: [],
                             createdAt: createdAt,
                         });
-                        if (context.user.games) {
-                            context.user.games = context.user.games.concat(newGame);
-                        }
-                        else {
-                            context.user.games = [newGame];
-                        }
-                        return [4 /*yield*/, context.user.save()];
-                    case 1:
-                        _a.sent();
-                        pubsub_1.default.publish(context.user.username, { userDataChanged: context.user });
-                        return [2 /*return*/, newGame.save()];
+                        if (!populatedUser.games)
+                            populatedUser.games = [];
+                        populatedUser.games = populatedUser === null || populatedUser === void 0 ? void 0 : populatedUser.games.concat(newGame);
+                        return [4 /*yield*/, populatedUser.save()];
                     case 2:
+                        _a.sent();
+                        pubsub_1.default.publish(populatedUser.username, { userDataChanged: populatedUser });
+                        return [2 /*return*/, newGame.save()];
+                    case 3:
                         error_1 = _a.sent();
-                        throw new Error("Error while creating the game: " + error_1.message);
-                    case 3: return [2 /*return*/];
+                        throw new Error(error_1);
+                    case 4: return [2 /*return*/];
                 }
             });
         }); },
         joinGame: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
-            var game, gameColumn, error_2;
+            var populatedUser, game, gameColumn, error_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 3, , 4]);
+                        _a.trys.push([0, 4, , 5]);
                         if (!context.user)
                             throw new apollo_server_express_1.AuthenticationError('Not authenticated!');
-                        return [4 /*yield*/, gameModel_1.default.findOne({ slug: args.slug }).populate('scoreboard.player')];
+                        return [4 /*yield*/, userModel_1.default.findByNameAndPopulate(context.user.username)];
                     case 1:
+                        populatedUser = _a.sent();
+                        if (!populatedUser)
+                            throw new Error('Something went wrong');
+                        return [4 /*yield*/, gameModel_1.default.findOne({ slug: args.slug }).populate('scoreboard.player')];
+                    case 2:
                         game = _a.sent();
                         if (!game)
                             throw new Error("Game with slug: " + args.slug + " not found!");
@@ -118,19 +126,19 @@ exports.default = {
                             return [2 /*return*/];
                         gameColumn = helpers_1.createScoreboardColumn(context.user);
                         game.scoreboard = game.scoreboard.concat(gameColumn);
-                        if (context.user.games) {
-                            context.user.games = context.user.games.concat(game);
-                        }
-                        return [4 /*yield*/, context.user.save()];
-                    case 2:
+                        if (!populatedUser.games)
+                            populatedUser.games = [];
+                        populatedUser.games = populatedUser.games.concat(game);
+                        return [4 /*yield*/, populatedUser.save()];
+                    case 3:
                         _a.sent();
-                        pubsub_1.default.publish(context.user.username, { userDataChanged: context.user });
+                        pubsub_1.default.publish(populatedUser.username, { userDataChanged: populatedUser });
                         pubsub_1.default.publish(args.slug, { gameDataChanged: game });
                         return [2 /*return*/, game.save()];
-                    case 3:
+                    case 4:
                         error_2 = _a.sent();
-                        throw new Error("Error while joining the game: " + error_2.message);
-                    case 4: return [2 /*return*/];
+                        throw new Error(error_2);
+                    case 5: return [2 /*return*/];
                 }
             });
         }); },
@@ -166,7 +174,7 @@ exports.default = {
                         return [2 /*return*/, game];
                     case 3:
                         error_3 = _a.sent();
-                        throw new Error("Error while rolling the dices: " + error_3.message);
+                        throw new Error(error_3);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -196,7 +204,7 @@ exports.default = {
                         return [2 /*return*/, game];
                     case 3:
                         error_4 = _a.sent();
-                        throw new Error("Error while toggling the dice selection: " + error_4.message);
+                        throw new Error(error_4);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -267,7 +275,7 @@ exports.default = {
                         return [2 /*return*/, game_1.save()];
                     case 2:
                         error_5 = _a.sent();
-                        throw new Error("Error posting the score: " + error_5.message);
+                        throw new Error(error_5);
                     case 3: return [2 /*return*/];
                 }
             });
@@ -299,7 +307,7 @@ exports.default = {
                         return [2 /*return*/, game.save()];
                     case 2:
                         error_6 = _a.sent();
-                        throw new Error("Error while posting a new message: " + error_6.message);
+                        throw new Error(error_6);
                     case 3: return [2 /*return*/];
                 }
             });
