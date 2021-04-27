@@ -147,7 +147,7 @@ exports.default = {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 3, , 4]);
+                        _a.trys.push([0, 4, , 5]);
                         if (!context.user)
                             throw new apollo_server_express_1.AuthenticationError('Not authenticated!');
                         return [4 /*yield*/, gameModel_1.default.findOne({ slug: args.slug }).populate('inTurn.player').populate('scorecard.player').populate('messages.user')];
@@ -161,21 +161,22 @@ exports.default = {
                             throw new Error('All three throws have been used!');
                         if (game.status === 'created')
                             game.status = types_1.GameStatus.Started;
-                        game.inTurn.rolling = true;
-                        pubsub_1.default.publish(args.slug, { gameDataChanged: game });
-                        newDices = helpers_1.rollDices(game.dices);
-                        game.dices = newDices;
                         game.inTurn.numberOfThrows = game.inTurn.numberOfThrows + 1;
-                        game.inTurn.rolling = false;
                         return [4 /*yield*/, game.save()];
                     case 2:
                         _a.sent();
                         pubsub_1.default.publish(args.slug, { gameDataChanged: game });
-                        return [2 /*return*/, game];
+                        newDices = helpers_1.rollDices(game.dices);
+                        game.dices = newDices;
+                        return [4 /*yield*/, game.save()];
                     case 3:
+                        _a.sent();
+                        pubsub_1.default.publish(args.slug, { gameDataChanged: game });
+                        return [2 /*return*/, game];
+                    case 4:
                         error_3 = _a.sent();
                         throw new Error(error_3);
-                    case 4: return [2 /*return*/];
+                    case 5: return [2 /*return*/];
                 }
             });
         }); },
@@ -221,11 +222,11 @@ exports.default = {
                     case 1:
                         game_1 = _a.sent();
                         if (!game_1)
-                            throw new Error("Game with slug: " + args.slug + " not found!");
+                            throw new Error("Game with slug: " + args.slug + " not found");
                         if (game_1.inTurn.player.id !== context.user.id)
-                            throw new Error('Not in turn!');
+                            throw new Error('Not in turn');
                         if (game_1.inTurn.numberOfThrows === 0)
-                            throw new Error('You need to roll dices first!');
+                            throw new Error('You need to roll dices first');
                         if (args.rowName === types_1.ScoreboardRowName.Sum || args.rowName === types_1.ScoreboardRowName.Bonus || args.rowName === types_1.ScoreboardRowName.Total)
                             throw new Error('Cannot post score to this row');
                         score = helpers_1.validateScore(game_1.dices, args.rowName);

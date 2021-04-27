@@ -107,16 +107,13 @@ export default {
                 if (game.inTurn.numberOfThrows >= 3) throw new Error('All three throws have been used!');
                 if (game.status === 'created') game.status = GameStatus.Started;
 
-                game.inTurn.rolling = true;
+                game.inTurn.numberOfThrows = game.inTurn.numberOfThrows + 1;
+                await game.save();
+
                 pubSub.publish(args.slug, { gameDataChanged: game });
 
                 const newDices = rollDices(game.dices);
-
                 game.dices = newDices;
-                game.inTurn.numberOfThrows = game.inTurn.numberOfThrows + 1;
-
-                game.inTurn.rolling = false;
-
                 await game.save();
 
                 pubSub.publish(args.slug, { gameDataChanged: game });
@@ -153,9 +150,9 @@ export default {
 
                 const game = await Game.findOne({ slug: args.slug }).populate('inTurn.player').populate('scoreboard.player').populate('messages.user');
 
-                if (!game) throw new Error(`Game with slug: ${args.slug} not found!`);
-                if (game.inTurn.player.id !== context.user.id) throw new Error('Not in turn!');
-                if (game.inTurn.numberOfThrows === 0) throw new Error('You need to roll dices first!');
+                if (!game) throw new Error(`Game with slug: ${args.slug} not found`);
+                if (game.inTurn.player.id !== context.user.id) throw new Error('Not in turn');
+                if (game.inTurn.numberOfThrows === 0) throw new Error('You need to roll dices first');
                 if (args.rowName === ScoreboardRowName.Sum || args.rowName === ScoreboardRowName.Bonus || args.rowName === ScoreboardRowName.Total) throw new Error('Cannot post score to this row');
 
                 const score = validateScore(game.dices, args.rowName);
