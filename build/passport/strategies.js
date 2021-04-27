@@ -51,7 +51,7 @@ passport_1.default.use(new passport_local_1.Strategy(function (username, passwor
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 4, , 5]);
-                return [4 /*yield*/, userModel_1.default.findOne({ username: username }).populate('games')];
+                return [4 /*yield*/, userModel_1.default.findOne({ username: username })];
             case 1:
                 user = _b.sent();
                 _a = !user;
@@ -83,7 +83,7 @@ passport_1.default.use(new passport_jwt_1.Strategy({
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, userModel_1.default.findOne({ username: payload.username }).populate('games')];
+                return [4 /*yield*/, userModel_1.default.findOne({ username: payload.username }, '-password')];
             case 1:
                 user = _a.sent();
                 if (user)

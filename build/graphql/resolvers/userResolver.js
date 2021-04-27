@@ -54,27 +54,28 @@ var authentication_1 = require("../../passport/authentication");
 var bcryptjs_1 = __importDefault(require("bcryptjs"));
 var userModel_1 = __importDefault(require("../../models/userModel"));
 var pubsub_1 = __importDefault(require("../pubsub"));
+var path_1 = __importDefault(require("path"));
+var fs_1 = __importDefault(require("fs"));
 exports.default = {
     Query: {
-        getUser: function (_parent, args) { return userModel_1.default.findOne({ username: args.username }, '-password').populate('games'); },
-        getOnlineUsers: function () { return userModel_1.default.find({}, '-password').where('status').equals('online').populate('games'); },
-        getAllUsers: function () { return userModel_1.default.find({}).populate('games'); },
-        currentUser: function (_parent, _args, context) { return __awaiter(void 0, void 0, void 0, function () {
-            var user, error_1;
+        getUser: function (_parent, args) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+            return [2 /*return*/, userModel_1.default.findByNameAndPopulate(args.username)];
+        }); }); },
+        getAllUsers: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
+            var currentUser, users, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, userModel_1.default
-                                .findOne({ username: context.user.username }, '-password')
-                                .populate('games')
-                                .populate('friends')
-                                .populate('notifications.from')];
+                        currentUser = context.user;
+                        if (!currentUser)
+                            throw new Error('Not authenticated');
+                        return [4 /*yield*/, userModel_1.default.find({})];
                     case 1:
-                        user = _a.sent();
-                        if (!user)
-                            throw new Error('User not found');
-                        return [2 /*return*/, user];
+                        users = _a.sent();
+                        if (!users)
+                            throw new Error('Did not find users');
+                        return [2 /*return*/, users.filter(function (user) { return user.username.toLowerCase().includes(args.username.toLowerCase()); })];
                     case 2:
                         error_1 = _a.sent();
                         throw new Error(error_1.message);
@@ -82,28 +83,32 @@ exports.default = {
                 }
             });
         }); },
+        currentUser: function (_parent, _args, context) { return userModel_1.default.findByNameAndPopulate(context.user.username); },
         signIn: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
-            var req, res, loginResponse, error_2;
+            var req, res, loginResponse, responseUser, error_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 2, , 3]);
+                        _a.trys.push([0, 3, , 4]);
                         req = context.req, res = context.res;
                         req.body = args;
                         return [4 /*yield*/, authentication_1.login(req, res)];
                     case 1:
                         loginResponse = _a.sent();
-                        return [2 /*return*/, __assign(__assign({}, loginResponse.user), { id: loginResponse.user._id, token: loginResponse.token })];
+                        return [4 /*yield*/, userModel_1.default.findByNameAndPopulate(loginResponse.user.username)];
                     case 2:
+                        responseUser = _a.sent();
+                        return [2 /*return*/, __assign(__assign({}, loginResponse.user), { id: responseUser.id, notifications: responseUser.notifications, friends: responseUser.friends, games: responseUser.games, token: loginResponse.token })];
+                    case 3:
                         error_2 = _a.sent();
-                        throw new Error("Error while signing in: " + error_2.message);
-                    case 3: return [2 /*return*/];
+                        throw new Error(error_2);
+                    case 4: return [2 /*return*/];
                 }
             });
         }); }
     },
     Mutation: {
-        signUp: function (_parent, args) { return __awaiter(void 0, void 0, void 0, function () {
+        signUp: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
             var username, password, hashedPassword, createdAt, user, error_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -114,46 +119,159 @@ exports.default = {
                     case 1:
                         hashedPassword = _a.sent();
                         createdAt = Date.now();
-                        user = new userModel_1.default({ username: username, createdAt: createdAt, password: hashedPassword, games: [], admin: false });
+                        user = new userModel_1.default({
+                            username: username,
+                            createdAt: createdAt,
+                            password: hashedPassword,
+                            games: [],
+                            admin: false,
+                            friends: [],
+                            avatarUrl: '',
+                        });
                         delete user.password;
                         return [2 /*return*/, user.save()];
                     case 2:
                         error_3 = _a.sent();
-                        throw new Error("Error while signing up: " + error_3.message);
+                        throw new Error(error_3);
                     case 3: return [2 /*return*/];
                 }
             });
         }); },
-        addFriend: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
-            var currentUser, user, newNotification, error_4;
+        addProfilePicture: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
+            var currentUser, _a, createReadStream, filename, ext, stream, pathName, error_4;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _b.trys.push([0, 5, , 6]);
+                        return [4 /*yield*/, userModel_1.default.findByNameAndPopulate(context.user.username)];
+                    case 1:
+                        currentUser = _b.sent();
+                        if (!currentUser)
+                            throw new Error('Not authenticated');
+                        return [4 /*yield*/, args.file];
+                    case 2:
+                        _a = _b.sent(), createReadStream = _a.createReadStream, filename = _a.filename;
+                        ext = path_1.default.parse(filename).ext;
+                        stream = createReadStream();
+                        pathName = path_1.default.join(__dirname, "../../public/avatars/" + context.user.username + ext);
+                        return [4 /*yield*/, stream.pipe(fs_1.default.createWriteStream(pathName))];
+                    case 3:
+                        _b.sent();
+                        currentUser.avatarUrl = "http://localhost:3001/public/avatars/" + context.user.username + ext;
+                        return [4 /*yield*/, currentUser.save()];
+                    case 4:
+                        _b.sent();
+                        pubsub_1.default.publish(currentUser.username, { userDataChanged: currentUser });
+                        return [2 /*return*/, {
+                                url: "http://localhost:3001/public/avatars/" + context.user.username + ext
+                            }];
+                    case 5:
+                        error_4 = _b.sent();
+                        throw new Error(error_4.message);
+                    case 6: return [2 /*return*/];
+                }
+            });
+        }); },
+        sendNotification: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                try {
+                    if (!context.user)
+                        throw new Error('Not authenticated');
+                    args.to.forEach(function (to) { return __awaiter(void 0, void 0, void 0, function () {
+                        var toUser;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, userModel_1.default.findByNameAndPopulate(to)];
+                                case 1:
+                                    toUser = _a.sent();
+                                    if (!toUser)
+                                        throw new Error('User not found');
+                                    if (!toUser.notifications)
+                                        toUser.notifications = [];
+                                    toUser.notifications = toUser.notifications.concat({ type: args.type, from: context.user, slug: args.slug });
+                                    return [4 /*yield*/, toUser.save()];
+                                case 2:
+                                    _a.sent();
+                                    pubsub_1.default.publish(toUser.username, { userDataChanged: toUser });
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); });
+                    return [2 /*return*/, context.user];
+                }
+                catch (error) {
+                    throw new Error(error);
+                }
+                return [2 /*return*/];
+            });
+        }); },
+        dismissNotification: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
+            var populatedUser, error_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 2, , 3]);
-                        currentUser = context.user;
-                        if (!currentUser)
+                        _a.trys.push([0, 3, , 4]);
+                        if (!context.user)
                             throw new Error('Not authenticated');
-                        return [4 /*yield*/, userModel_1.default.findOne({ username: args.username })];
+                        return [4 /*yield*/, userModel_1.default.findByNameAndPopulate(context.user.username)];
                     case 1:
-                        user = _a.sent();
-                        if (!user)
-                            throw new Error('User not found');
-                        newNotification = {
-                            from: currentUser,
-                            message: currentUser.username + " want to be your friend!",
-                        };
-                        if (!user.notifications) {
-                            user.notifications = [newNotification];
-                        }
-                        else {
-                            user.notifications = user.notifications.concat(newNotification);
-                        }
-                        pubsub_1.default.publish(user.username, { userDataChanged: user });
-                        return [2 /*return*/, user.save()];
+                        populatedUser = _a.sent();
+                        if (!populatedUser)
+                            throw new Error('Something went wrong');
+                        populatedUser.notifications = populatedUser.notifications.filter(function (notification) { return notification.id !== args.id; });
+                        return [4 /*yield*/, populatedUser.save()];
                     case 2:
-                        error_4 = _a.sent();
-                        throw new Error("Error while adding a new friend: " + error_4.message);
-                    case 3: return [2 /*return*/];
+                        _a.sent();
+                        pubsub_1.default.publish(populatedUser.username, { userDataChanged: populatedUser });
+                        return [2 /*return*/, populatedUser];
+                    case 3:
+                        error_5 = _a.sent();
+                        throw new Error(error_5);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        }); },
+        acceptFriendRequest: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
+            var populatedUser, request, sender, error_6;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 5, , 6]);
+                        if (!context.user)
+                            throw new Error('Not authenticated');
+                        return [4 /*yield*/, userModel_1.default.findByNameAndPopulate(context.user.username)];
+                    case 1:
+                        populatedUser = _a.sent();
+                        if (!populatedUser)
+                            throw new Error('Something went wrong');
+                        request = populatedUser.notifications.find(function (notification) { return notification.id === args.id; });
+                        if (!request)
+                            throw new Error('Request not found');
+                        return [4 /*yield*/, userModel_1.default.findByNameAndPopulate(request.from.username)];
+                    case 2:
+                        sender = _a.sent();
+                        if (!sender)
+                            throw new Error('Sender not found');
+                        if (!populatedUser.friends)
+                            populatedUser.friends = [];
+                        populatedUser.friends = populatedUser.friends.concat(sender);
+                        if (!sender.friends)
+                            sender.friends = [];
+                        sender.friends = sender.friends.concat(populatedUser);
+                        populatedUser.notifications = populatedUser.notifications.filter(function (notification) { return notification.id !== args.id; });
+                        return [4 /*yield*/, populatedUser.save()];
+                    case 3:
+                        _a.sent();
+                        return [4 /*yield*/, sender.save()];
+                    case 4:
+                        _a.sent();
+                        pubsub_1.default.publish(populatedUser.username, { userDataChanged: populatedUser });
+                        pubsub_1.default.publish(sender.username, { userDataChanged: sender });
+                        return [2 /*return*/, populatedUser];
+                    case 5:
+                        error_6 = _a.sent();
+                        throw new Error(error_6);
+                    case 6: return [2 /*return*/];
                 }
             });
         }); }

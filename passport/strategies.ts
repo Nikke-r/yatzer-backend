@@ -9,7 +9,7 @@ import '../models/gameModel';
 passport.use(new LocalStrategy(
     async (username, password, done) => {
         try {
-            const user = await User.findOne({ username }).populate('games');
+            const user = await User.findOne({ username });
 
             if (!user || !(await bcrypt.compare(password, user.password!))) {
                 return done(null, false, { message: 'Invalid Credentials' });
@@ -30,7 +30,7 @@ passport.use(new JwtStrategy({
     secretOrKey: process.env.JWT_SECRET,
 }, async (payload: PublicUser, done) => {
     try {
-        const user = await User.findOne({ username: payload.username }).populate('games');
+        const user = await User.findOne({ username: payload.username }, '-password');
 
         if (user) return done(null, user);
 

@@ -89,4 +89,22 @@ const gameModel = new mongoose.Schema({
     ]
 });
 
-export default mongoose.model<GameType>('Game', gameModel);
+gameModel.statics.findBySlugAndPopulate = async function(slug: string): Promise<GameType | null> {
+    return await this.findOne({ slug }).populate([
+        {
+            path: 'inTurn.player'
+        },
+        {
+            path:'scoreboard.player'
+        },
+        {
+            path: 'messages.user'
+        }
+    ]);
+}
+
+interface GameModelStaticMethods extends mongoose.Model<GameType> {
+    findBySlugAndPopulate: (slug: string) => Promise<GameType | null>;
+}
+
+export default mongoose.model<GameType, GameModelStaticMethods>('Game', gameModel);

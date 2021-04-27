@@ -12,10 +12,8 @@ export const login = (req: Request, res: Response) => {
                 if (error) reject(error);
 
                 if (process.env.JWT_SECRET) {
-                    const tokenUser = { ...user };
-                    delete tokenUser.games;
                     
-                    const token = jwt.sign(tokenUser, process.env.JWT_SECRET);
+                    const token = jwt.sign(user, process.env.JWT_SECRET);
 
                     resolve({ user, token });
                 }

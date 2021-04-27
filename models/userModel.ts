@@ -37,18 +37,41 @@ const userModel = new mongoose.Schema({
             ref: 'User'
         }
     ],
+    avatarUrl: String,
     notifications: [
         {
             from: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'User'
             },
-            message: {
+            type: {
                 type: String,
-                required: true,
-            }
+                enum: [
+                    "FriendRequest", //Friend Request
+                    "GameInvitation", //Game Invitation
+                ]
+            },
+            slug: String
         }
     ]
 });
 
-export default mongoose.model<DatabaseUser>('User', userModel);
+userModel.statics.findByNameAndPopulate = async function(username: string): Promise<DatabaseUser | null> {
+    return await this.findOne({ username }, '-password').populate([
+        {
+            path: 'games'
+        },
+        {
+            path: 'friends'
+        },
+        {
+            path: 'notifications.from',
+        }
+    ]);
+};
+
+interface UserModelStaticMethods extends mongoose.Model<DatabaseUser> {
+    findByNameAndPopulate: (username: string) => Promise<DatabaseUser | null>;
+}
+
+export default mongoose.model<DatabaseUser, UserModelStaticMethods>('User', userModel);

@@ -1,28 +1,38 @@
-import { AuthInputValues, ChatMessage, ContextType, InTurnPlayer, Notification, PublicUser, ScoreboardColumn } from "../../types";
+import { 
+    AuthInputValues, 
+    ChatMessage, 
+    ContextType,
+    InTurnPlayer, 
+    NotificationTypes, 
+    PublicUser, 
+    ScoreboardColumn 
+} from "../../types";
 import { login } from "../../passport/authentication";
 import bcrypt from 'bcryptjs';
 import User from '../../models/userModel';
 import pubSub from '../pubsub';
+import path from 'path';
+import fs from 'fs';
+import { ObjectId } from "mongoose";
 
 export default {
     Query: {
-        getUser: (_parent: unknown, args: { username: string }) => User.findOne({ username: args.username }, '-password').populate('games'),
-        getOnlineUsers: () => User.find({}, '-password').where('status').equals('online').populate('games'),
-        getAllUsers: () => User.find({}).populate('games'),
-        currentUser: async (_parent: unknown, _args: unknown, context: ContextType) => {
+        getUser: async (_parent: unknown, args: { username: string }) => User.findByNameAndPopulate(args.username),
+        getAllUsers: async (_parent: unknown, args: { username: string }, context: ContextType) => {
             try {
-                const user = await User
-                                    .findOne({ username: context.user.username }, '-password')
-                                    .populate('games')
-                                    .populate('friends')
-                                    .populate('notifications.from');
-                if (!user) throw new Error('User not found');
+                const currentUser = context.user;
+                if (!currentUser) throw new Error('Not authenticated');
 
-                return user;
+                const users = await User.find({});
+
+                if (!users) throw new Error('Did not find users')
+
+                return users.filter(user => user.username.toLowerCase().includes(args.username.toLowerCase()))
             } catch (error) {
                 throw new Error(error.message);
             }
         },
+        currentUser: (_parent: unknown, _args: unknown, context: ContextType) => User.findByNameAndPopulate(context.user.username),
         signIn: async (_parent: unknown, args: AuthInputValues, context: ContextType) => {
             try {
                 const { req, res } = context;
@@ -30,59 +40,145 @@ export default {
 
                 const loginResponse = await login(req, res);
 
+                const responseUser = await User.findByNameAndPopulate(loginResponse.user.username);
+
                 return {
                     ...loginResponse.user,
-                    id: loginResponse.user._id as string,
+                    id: responseUser!.id,
+                    notifications: responseUser!.notifications,
+                    friends: responseUser!.friends,
+                    games: responseUser!.games,
                     token: loginResponse.token
                 };
                 
             } catch (error) {
-                throw new Error(`Error while signing in: ${error.message}`);
+                throw new Error(error);
             }
         }
     },
     Mutation: {
-        signUp: async (_parent: unknown, args: AuthInputValues) => {
+        signUp: async (_parent: unknown, args: AuthInputValues, context: ContextType) => {
             try {
                 const { username, password } = args;
 
                 const hashedPassword = await bcrypt.hash(password, 12);
                 const createdAt = Date.now();
-                const user = new User({ username, createdAt, password: hashedPassword, games: [], admin: false });
+
+                const user = new User({ 
+                    username,
+                    createdAt, 
+                    password: hashedPassword, 
+                    games: [], 
+                    admin: false, 
+                    friends: [],
+                    avatarUrl: '',
+                });
 
                 delete user.password;
     
                 return user.save();
             } catch (error) {
-                throw new Error(`Error while signing up: ${error.message}`);
+                throw new Error(error);
             }
         },
-        addFriend: async (_parent: unknown, args: { username: string }, context: ContextType) => {
+        addProfilePicture: async (_parent: unknown, args: any, context: ContextType) => {
             try {
-                const currentUser = context.user;
+                const currentUser = await User.findByNameAndPopulate(context.user.username);
 
                 if (!currentUser) throw new Error('Not authenticated');
 
-                const user = await User.findOne({ username: args.username });
+                const { createReadStream, filename } = await args.file;
 
-                if (!user) throw new Error('User not found');
+                const { ext } = path.parse(filename);
+                
+                const stream = createReadStream();
+                const pathName = path.join(__dirname, `../../public/avatars/${context.user.username}${ext}`);
+                await stream.pipe(fs.createWriteStream(pathName));
 
-                const newNotification: Notification = {
-                    from: currentUser,
-                    message: `${currentUser.username} want to be your friend!`,
+                currentUser.avatarUrl = `http://localhost:3001/public/avatars/${context.user.username}${ext}`;
+
+                await currentUser.save();
+
+                pubSub.publish(currentUser.username, { userDataChanged: currentUser });
+
+                return {
+                    url: `http://localhost:3001/public/avatars/${context.user.username}${ext}`
                 }
-
-                if (!user.notifications) {
-                    user.notifications = [newNotification];
-                } else {
-                    user.notifications = user.notifications.concat(newNotification);
-                }
-
-                pubSub.publish(user.username, { userDataChanged: user });
-
-                return user.save();
             } catch (error) {
-                throw new Error(`Error while adding a new friend: ${error.message}`);
+                throw new Error(error.message);
+            }
+        },
+        sendNotification: async (_parent: unknown, args: { type: NotificationTypes, to: string[], slug?: string }, context: ContextType) => {
+            try {
+                if (!context.user) throw new Error('Not authenticated');
+
+                args.to.forEach(async to => {
+                    const toUser = await User.findByNameAndPopulate(to);
+
+                    if (!toUser) throw new Error('User not found');
+    
+                    if (!toUser.notifications) toUser.notifications = [];
+                    toUser.notifications = toUser.notifications.concat({ type: args.type, from: context.user, slug: args.slug });
+    
+                    await toUser.save();
+    
+                    pubSub.publish(toUser.username, { userDataChanged: toUser });
+                });
+
+                return context.user;
+            } catch (error) {
+                throw new Error(error);
+            }
+        },
+        dismissNotification: async (_parent: unknown, args: { id: ObjectId }, context: ContextType) => {
+            try {
+                if (!context.user) throw new Error('Not authenticated');
+
+                const populatedUser = await User.findByNameAndPopulate(context.user.username);
+
+                if (!populatedUser) throw new Error('Something went wrong');
+
+                populatedUser.notifications = populatedUser.notifications.filter(notification => notification.id !== args.id);
+
+                await populatedUser.save();
+
+                pubSub.publish(populatedUser.username, { userDataChanged: populatedUser });
+
+                return populatedUser;
+            } catch (error) {
+                throw new Error(error);
+            }
+        },
+        acceptFriendRequest: async (_parent: unknown, args: { id: ObjectId }, context: ContextType) => {
+            try {
+                if (!context.user) throw new Error('Not authenticated');
+
+                const populatedUser = await User.findByNameAndPopulate(context.user.username);
+                if (!populatedUser) throw new Error('Something went wrong');
+
+                const request = populatedUser.notifications.find(notification => notification.id === args.id);
+                if (!request) throw new Error('Request not found');
+
+                const sender = await User.findByNameAndPopulate(request.from.username);
+                if (!sender) throw new Error('Sender not found');
+
+                if (!populatedUser.friends) populatedUser.friends = [];
+                populatedUser.friends = populatedUser.friends.concat(sender);
+                
+                if (!sender.friends) sender.friends = [];
+                sender.friends = sender.friends.concat(populatedUser);
+
+                populatedUser.notifications = populatedUser.notifications.filter(notification => notification.id !== args.id);
+
+                await populatedUser.save();
+                await sender.save();
+
+                pubSub.publish(populatedUser.username, { userDataChanged: populatedUser });
+                pubSub.publish(sender.username, { userDataChanged: sender });
+
+                return populatedUser;
+            } catch (error) {
+                throw new Error(error);
             }
         }
     },

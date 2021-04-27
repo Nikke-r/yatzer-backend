@@ -9,12 +9,20 @@ export default gql`
         token: String
         status: Status!
         friends: [User!]!
-        notifications: [Notification!]!
+        avatarUrl: String!
+        notifications: [Notifications!]!
     }
 
-    type Notification {
+    enum NotificationTypes {
+        FriendRequest
+        GameInvitation
+    }
+
+    type Notifications {
+        id: ID!
+        type: NotificationTypes!
         from: User!
-        message: String!
+        slug: String
     }
 
     enum Status {
@@ -22,17 +30,24 @@ export default gql`
         offline
     }
 
+    type File {
+        url: String!
+    }
+
     extend type Query {
         getUser(username: String!): User
         getOnlineUsers: [User!]!
-        getAllUsers: [User!]!
+        getAllUsers(username: String!): [User!]!
         currentUser: User
         signIn(username: String!, password: String!): User
     }
 
     extend type Mutation {
         signUp(username: String!, password: String!): User 
-        addFriend(username: String!): User
+        addProfilePicture(file: Upload!): File
+        sendNotification(type: NotificationTypes!, to: [String!]!, slug: String): User
+        dismissNotification(id: ID!): User
+        acceptFriendRequest(id: ID!): User
     }
 
     extend type Subscription {

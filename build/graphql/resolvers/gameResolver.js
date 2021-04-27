@@ -287,8 +287,8 @@ exports.default = {
                             throw new Error("Game with slug: " + args.slug + " not found!");
                         if (!game.scoreboard.find(function (column) { return column.player.id === context.user.id; }))
                             throw new Error("Not in the game!");
-                        if (!args.message || args.message.length < 2 || args.message.length > 50)
-                            throw new Error('Message must be at least three characters and maximun of 160 characters');
+                        if (!args.message || args.message.length < 2 || args.message.length > 20)
+                            throw new Error('Message must be at least three characters and maximun of 20 characters');
                         newMessage = {
                             timestamp: Date.now(),
                             user: context.user,
@@ -303,7 +303,7 @@ exports.default = {
                     case 3: return [2 /*return*/];
                 }
             });
-        }); }
+        }); },
     },
     Subscription: {
         gameDataChanged: {

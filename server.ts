@@ -7,6 +7,7 @@ import resolvers from './graphql/resolvers';
 import { checkAuthentication } from './passport/authentication';
 import cors from 'cors';
 import http from 'http';
+import path from 'path';
 
 (async () => {
     try {
@@ -14,6 +15,7 @@ import http from 'http';
 
         const app = express();
         app.use(cors());
+        app.use("/public/avatars", express.static(path.join(__dirname, "public/avatars")));
 
         const server = new ApolloServer({
             typeDefs,
@@ -32,7 +34,6 @@ import http from 'http';
                         };
                     }
                 } catch (error) {
-                    console.log(`Context error: ${error.message}`);
                     return null;
                 }
             },
@@ -43,11 +44,10 @@ import http from 'http';
                     } 
                 },
             },
-            uploads: false
         });
 
         await server.start();
-        server.applyMiddleware({ app });
+        server.applyMiddleware({ app, cors: false });
 
         const httpServer = http.createServer(app);
         server.installSubscriptionHandlers(httpServer);

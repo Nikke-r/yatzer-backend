@@ -1,9 +1,25 @@
 import { AuthenticationError } from "apollo-server-express";
-import { ContextType, GameStatus, DiceSelectionArgs, ScorePostingArgs, NewMessageArgs, ChatMessage, GameArgsBaseType, ScoreboardRowName, GameType } from "../../types";
+import { 
+    ContextType, 
+    GameStatus, 
+    DiceSelectionArgs, 
+    ScorePostingArgs, 
+    NewMessageArgs, 
+    ChatMessage, 
+    GameArgsBaseType, 
+    ScoreboardRowName, 
+    GameType, 
+} from "../../types";
 import Game from '../../models/gameModel';
-import { createSlug, createGameDices, createScoreboardColumn, rollDices, validateScore, calculateSum, calculateTotal } from "../../utils/helpers";
+import { 
+    createSlug, 
+    createGameDices, 
+    createScoreboardColumn, 
+    rollDices, validateScore, 
+    calculateSum, 
+    calculateTotal 
+} from "../../utils/helpers";
 import pubSub from '../pubsub';
-
 
 export default {
     Query: {
@@ -212,7 +228,7 @@ export default {
     
                 if (!game) throw new Error(`Game with slug: ${args.slug} not found!`);
                 if (!game.scoreboard.find(column => column.player.id === context.user.id)) throw new Error(`Not in the game!`);
-                if (!args.message || args.message.length < 2 || args.message.length > 50) throw new Error('Message must be at least three characters and maximun of 160 characters');
+                if (!args.message || args.message.length < 2 || args.message.length > 20) throw new Error('Message must be at least three characters and maximun of 20 characters');
 
                 const newMessage: ChatMessage = {
                     timestamp: Date.now(),
@@ -228,7 +244,7 @@ export default {
             } catch (error) {
                 throw new Error(`Error while posting a new message: ${error.message}`);
             }
-        }
+        },
     },
     Subscription: {
         gameDataChanged: {

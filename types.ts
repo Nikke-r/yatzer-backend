@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
-import { Document } from "mongoose";
+import mongoose from "mongoose";
 
-export interface DatabaseUser extends Document {
+export interface DatabaseUser extends mongoose.Document {
+    id: mongoose.ObjectId,
     username: string;
     password?: string;
     createdAt: number;
@@ -9,13 +10,21 @@ export interface DatabaseUser extends Document {
     status: 'online' | 'offline';
     admin: boolean;
     socketId?: string;
-    friends: PublicUser[];
-    notifications: Notification[];
+    friends?: PublicUser[];
+    avatarUrl: string;
+    notifications: Notifications[];
 }
 
-export interface Notification {
+export enum NotificationTypes {
+    FriendRequest = "FriendRequest",
+    GameInvitation = "GameInvitation"
+}
+
+export interface Notifications {
+    id?: mongoose.ObjectId;
+    type: NotificationTypes;
     from: PublicUser;
-    message: string;
+    slug?: string;
 }
 
 export type PublicUser = Omit<DatabaseUser, 'password'>;
@@ -77,7 +86,8 @@ export interface ChatMessage {
     message: string;
 }
 
-export interface GameType extends Document {
+export interface GameType extends mongoose.Document {
+    id: mongoose.ObjectId;
     slug: string;
     scoreboard: Scoreboard;
     dices: Dice[];
@@ -112,10 +122,4 @@ export interface ScorePostingArgs extends GameArgsBaseType {
 
 export interface NewMessageArgs extends GameArgsBaseType {
     message: string;
-}
-
-export interface LobbyType extends Document {
-    name: string;
-    users: PublicUser[];
-    messages: ChatMessage[];
 }

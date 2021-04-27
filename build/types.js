@@ -1,6 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GameStatus = exports.ScoreboardRowName = void 0;
+exports.GameStatus = exports.ScoreboardRowName = exports.NotificationTypes = void 0;
+var NotificationTypes;
+(function (NotificationTypes) {
+    NotificationTypes["FriendRequest"] = "FriendRequest";
+    NotificationTypes["GameInvitation"] = "GameInvitation";
+})(NotificationTypes = exports.NotificationTypes || (exports.NotificationTypes = {}));
 var ScoreboardRowName;
 (function (ScoreboardRowName) {
     ScoreboardRowName["Aces"] = "Aces";

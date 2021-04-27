@@ -1,4 +1,10 @@
-import { Dice, PublicUser, ScoreboardColumn, ScoreboardRow, ScoreboardRowName, } from "../types";
+import { 
+    Dice, 
+    PublicUser, 
+    ScoreboardColumn, 
+    ScoreboardRow, 
+    ScoreboardRowName, 
+} from "../types";
 
 export const createSlug = (): string => {
     const alphabets = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
