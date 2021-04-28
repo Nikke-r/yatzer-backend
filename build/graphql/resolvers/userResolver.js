@@ -69,13 +69,16 @@ exports.default = {
                     case 1:
                         docs = _a.sent();
                         sorted = docs.sort(function (a, b) {
-                            if (a.games.length > b.games.length)
+                            var _a, _b;
+                            var aGames = (((_a = a.games) === null || _a === void 0 ? void 0 : _a.length) || 0);
+                            var bGames = (((_b = b.games) === null || _b === void 0 ? void 0 : _b.length) || 0);
+                            if (aGames > bGames)
                                 return -1;
-                            if (a.games.length < b.games.length)
+                            if (aGames < bGames)
                                 return 1;
                             return 0;
                         });
-                        topTen = sorted.splice(0, 10).map(function (item) { return ({ name: item.username, amount: (item.games.length || 0) }); });
+                        topTen = sorted.splice(0, 10).map(function (item) { var _a; return ({ name: item.username, amount: (((_a = item.games) === null || _a === void 0 ? void 0 : _a.length) || 0) }); });
                         return [2 /*return*/, topTen];
                     case 2:
                         error_1 = _a.sent();
@@ -94,9 +97,11 @@ exports.default = {
                     case 1:
                         docs = _a.sent();
                         sorted = docs.sort(function (a, b) {
-                            if (a.highestScore > b.highestScore)
+                            var aScore = (a.highestScore || 0);
+                            var bScore = (b.highestScore || 0);
+                            if (aScore > bScore)
                                 return -1;
-                            if (a.highestScore < b.highestScore)
+                            if (aScore < bScore)
                                 return 1;
                             return 0;
                         });
@@ -119,9 +124,11 @@ exports.default = {
                     case 1:
                         docs = _a.sent();
                         sorted = docs.sort(function (a, b) {
-                            if (a.wins > b.wins)
+                            var aWins = (a.wins || 0);
+                            var bWins = (b.wins || 0);
+                            if (aWins > bWins)
                                 return -1;
-                            if (a.wins < b.wins)
+                            if (aWins < bWins)
                                 return 1;
                             return 0;
                         });

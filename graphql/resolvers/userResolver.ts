@@ -23,12 +23,15 @@ export default {
                 const docs = await User.find({}, 'username games');
 
                 const sorted = docs.sort((a, b) => {
-                    if (a.games!.length > b.games!.length) return -1;
-                    if (a.games!.length < b.games!.length) return 1;
+                    const aGames = (a.games?.length || 0);
+                    const bGames = (b.games?.length || 0);
+
+                    if (aGames > bGames) return -1;
+                    if (aGames < bGames) return 1;
                     return 0;
                 });
 
-                const topTen = sorted.splice(0, 10).map(item => ({ name: item.username, amount: (item.games!.length || 0) }));
+                const topTen = sorted.splice(0, 10).map(item => ({ name: item.username, amount: (item.games?.length || 0) }));
 
                 return topTen;
             } catch (error) {
@@ -40,8 +43,12 @@ export default {
                 const docs = await User.find({}, 'username highestScore');
 
                 const sorted = docs.sort((a, b) => {
-                    if (a.highestScore > b.highestScore) return -1;
-                    if (a.highestScore < b.highestScore) return 1;
+                    const aScore = (a.highestScore || 0);
+                    const bScore = (b.highestScore || 0);
+
+                    if (aScore > bScore) return -1;
+                    if (aScore < bScore) return 1;
+
                     return 0;
                 });
 
@@ -57,8 +64,11 @@ export default {
                 const docs = await User.find({}, 'username wins');
 
                 const sorted = docs.sort((a, b) => {
-                    if (a.wins > b.wins) return -1;
-                    if (a.wins < b.wins) return 1;
+                    const aWins = (a.wins || 0);
+                    const bWins = (b.wins || 0);
+
+                    if (aWins > bWins) return -1;
+                    if (aWins < bWins) return 1;
                     return 0;
                 });
 
