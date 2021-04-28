@@ -28,7 +28,7 @@ export default {
                     return 0;
                 });
 
-                const topTen = sorted.splice(0, 10).map(item => ({ name: item.username, amount: item.games!.length }));
+                const topTen = sorted.splice(0, 10).map(item => ({ name: item.username, amount: (item.games!.length || 0) }));
 
                 return topTen;
             } catch (error) {
@@ -45,7 +45,7 @@ export default {
                     return 0;
                 });
 
-                const topTen = sorted.splice(0, 10).map(item => ({ name: item.username, amount: item.highestScore }));
+                const topTen = sorted.splice(0, 10).map(item => ({ name: item.username, amount: (item.highestScore || 0) }));
 
                 return topTen;
             } catch (error) {
@@ -62,7 +62,7 @@ export default {
                     return 0;
                 });
 
-                const topTen = sorted.splice(0, 10).map(item => ({ name: item.username, amount: item.wins }));
+                const topTen = sorted.splice(0, 10).map(item => ({ name: item.username, amount: (item.wins || 0) }));
 
                 return topTen;
             } catch (error) {
