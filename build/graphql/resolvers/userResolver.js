@@ -75,7 +75,7 @@ exports.default = {
                                 return 1;
                             return 0;
                         });
-                        topTen = sorted.splice(0, 10).map(function (item) { return ({ name: item.username, amount: item.games.length }); });
+                        topTen = sorted.splice(0, 10).map(function (item) { return ({ name: item.username, amount: (item.games.length || 0) }); });
                         return [2 /*return*/, topTen];
                     case 2:
                         error_1 = _a.sent();
@@ -100,7 +100,7 @@ exports.default = {
                                 return 1;
                             return 0;
                         });
-                        topTen = sorted.splice(0, 10).map(function (item) { return ({ name: item.username, amount: item.highestScore }); });
+                        topTen = sorted.splice(0, 10).map(function (item) { return ({ name: item.username, amount: (item.highestScore || 0) }); });
                         return [2 /*return*/, topTen];
                     case 2:
                         error_2 = _a.sent();
@@ -125,7 +125,7 @@ exports.default = {
                                 return 1;
                             return 0;
                         });
-                        topTen = sorted.splice(0, 10).map(function (item) { return ({ name: item.username, amount: item.wins }); });
+                        topTen = sorted.splice(0, 10).map(function (item) { return ({ name: item.username, amount: (item.wins || 0) }); });
                         return [2 /*return*/, topTen];
                     case 2:
                         error_3 = _a.sent();
