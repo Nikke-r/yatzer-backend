@@ -50,6 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var types_1 = require("../../types");
 var authentication_1 = require("../../passport/authentication");
 var bcryptjs_1 = __importDefault(require("bcryptjs"));
 var userModel_1 = __importDefault(require("../../models/userModel"));
@@ -60,15 +61,22 @@ exports.default = {
     Query: {
         getUserCount: function () { return userModel_1.default.countDocuments({}); },
         mostPlayedGames: function () { return __awaiter(void 0, void 0, void 0, function () {
-            var docs, sorted, topTen, error_1;
+            var docs, onlyEndedGames, sorted, topTen, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, userModel_1.default.find({}, 'username games')];
+                        return [4 /*yield*/, userModel_1.default.find({}, 'username games').populate('games', 'status')];
                     case 1:
                         docs = _a.sent();
-                        sorted = docs.sort(function (a, b) {
+                        onlyEndedGames = docs.map(function (doc) {
+                            var endedGamesByUser = doc.games.filter(function (game) { return game.status === types_1.GameStatus.Ended; });
+                            return {
+                                username: doc.username,
+                                games: endedGamesByUser,
+                            };
+                        });
+                        sorted = onlyEndedGames.sort(function (a, b) {
                             var _a, _b;
                             var aGames = (((_a = a.games) === null || _a === void 0 ? void 0 : _a.length) || 0);
                             var bGames = (((_b = b.games) === null || _b === void 0 ? void 0 : _b.length) || 0);
