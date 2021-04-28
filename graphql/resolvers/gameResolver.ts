@@ -218,7 +218,7 @@ export default {
                                 const results = sortFinalResults(game.scoreboard);
                                 game.finalResult = results;
 
-                                if (results.length > 1) {
+                                if (results.length > 1 && results[0].score > results[1].score) {
                                     if (!results[0].player.wins) {
                                         results[0].player.wins = 1;
                                     } else {

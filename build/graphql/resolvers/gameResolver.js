@@ -277,7 +277,7 @@ exports.default = {
                         game_1.status = types_1.GameStatus.Ended;
                         results = helpers_1.sortFinalResults(game_1.scoreboard);
                         game_1.finalResult = results;
-                        if (!(results.length > 1)) return [3 /*break*/, 4];
+                        if (!(results.length > 1 && results[0].score > results[1].score)) return [3 /*break*/, 4];
                         if (!results[0].player.wins) {
                             results[0].player.wins = 1;
                         }
