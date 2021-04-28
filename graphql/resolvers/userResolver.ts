@@ -2,6 +2,7 @@ import {
     AuthInputValues, 
     ChatMessage, 
     ContextType,
+    GameStatus,
     InTurnPlayer, 
     NotificationTypes, 
     PublicUser, 
@@ -20,9 +21,18 @@ export default {
         getUserCount: () => User.countDocuments({}),
         mostPlayedGames: async () => {
             try {
-                const docs = await User.find({}, 'username games');
+                const docs = await User.find({}, 'username games').populate('games', 'status');
 
-                const sorted = docs.sort((a, b) => {
+                const onlyEndedGames = docs.map(doc => {
+                    const endedGamesByUser = doc.games!.filter(game => game.status === GameStatus.Ended);
+
+                    return {
+                        username: doc.username,
+                        games: endedGamesByUser,
+                    }
+                });
+
+                const sorted = onlyEndedGames.sort((a, b) => {
                     const aGames = (a.games?.length || 0);
                     const bGames = (b.games?.length || 0);
 
