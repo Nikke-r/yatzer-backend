@@ -204,7 +204,12 @@ export default {
                             scoreboardColumn.rows[17].score = total;
                             scoreboardColumn.rows[17].filled = true;
 
-                            context.user.highestScore = context.user.highestScore < scoreboardColumn.rows[17].score ? scoreboardColumn.rows[17].score : context.user.highestScore;
+                            if (!context.user.highestScore) {
+                                context.user.highestScore = scoreboardColumn.rows[17].score;
+                            } else {
+                                context.user.highestScore = context.user.highestScore < scoreboardColumn.rows[17].score ? scoreboardColumn.rows[17].score : context.user.highestScore;
+                            }
+
                             await context.user.save();
 
                             if (currentPlayerIndex === game.scoreboard.length - 1) {
@@ -214,7 +219,11 @@ export default {
                                 game.finalResult = results;
 
                                 if (results.length > 1) {
-                                    results[0].player.wins = results[0].player.wins + 1;
+                                    if (!results[0].player.wins) {
+                                        results[0].player.wins = 1;
+                                    } else {
+                                        results[0].player.wins = results[0].player.wins + 1;
+                                    }
                                     await results[0].player.save();
                                 }
                             }

@@ -264,7 +264,12 @@ exports.default = {
                         if (!total) return [3 /*break*/, 4];
                         scoreboardColumn.rows[17].score = total;
                         scoreboardColumn.rows[17].filled = true;
-                        context.user.highestScore = context.user.highestScore < scoreboardColumn.rows[17].score ? scoreboardColumn.rows[17].score : context.user.highestScore;
+                        if (!context.user.highestScore) {
+                            context.user.highestScore = scoreboardColumn.rows[17].score;
+                        }
+                        else {
+                            context.user.highestScore = context.user.highestScore < scoreboardColumn.rows[17].score ? scoreboardColumn.rows[17].score : context.user.highestScore;
+                        }
                         return [4 /*yield*/, context.user.save()];
                     case 2:
                         _a.sent();
@@ -273,7 +278,12 @@ exports.default = {
                         results = helpers_1.sortFinalResults(game_1.scoreboard);
                         game_1.finalResult = results;
                         if (!(results.length > 1)) return [3 /*break*/, 4];
-                        results[0].player.wins = results[0].player.wins + 1;
+                        if (!results[0].player.wins) {
+                            results[0].player.wins = 1;
+                        }
+                        else {
+                            results[0].player.wins = results[0].player.wins + 1;
+                        }
                         return [4 /*yield*/, results[0].player.save()];
                     case 3:
                         _a.sent();
