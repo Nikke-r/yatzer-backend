@@ -86,6 +86,15 @@ const gameModel = new mongoose.Schema({
             },
             timestamp: Number,
         }
+    ],
+    finalResult: [
+        {
+            player: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User'
+            },
+            score: Number
+        }
     ]
 });
 
@@ -99,6 +108,9 @@ gameModel.statics.findBySlugAndPopulate = async function(slug: string): Promise<
         },
         {
             path: 'messages.user'
+        },
+        {
+            path: 'finalResult.player'
         }
     ]);
 }

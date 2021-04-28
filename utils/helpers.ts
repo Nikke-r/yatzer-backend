@@ -1,6 +1,8 @@
 import { 
     Dice, 
     PublicUser, 
+    Result, 
+    Scoreboard, 
     ScoreboardColumn, 
     ScoreboardRow, 
     ScoreboardRowName, 
@@ -248,4 +250,19 @@ export const calculateTotal = (scoreboardRows: ScoreboardRow[]): number | undefi
     });
 
     return total;
+};
+
+export const sortFinalResults = (scoreboard: Scoreboard): Result[] => {
+    const sorted = scoreboard.sort((a, b) => {
+        if (a.rows[17].score > b.rows[17].score) return -1;
+        if (a.rows[17].score < b.rows[17].score) return 1;
+        return 0;
+    });
+
+    const results = sorted.map(column => ({
+        player: column.player,
+        score: column.rows[17].score
+    }));
+
+    return results;
 };

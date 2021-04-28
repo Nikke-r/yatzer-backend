@@ -53,7 +53,9 @@ const userModel = new mongoose.Schema({
             },
             slug: String
         }
-    ]
+    ],
+    highestScore: Number,
+    wins: Number,
 });
 
 userModel.statics.findByNameAndPopulate = async function(username: string): Promise<DatabaseUser | null> {

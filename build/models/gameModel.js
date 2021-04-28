@@ -125,6 +125,15 @@ var gameModel = new mongoose_1.default.Schema({
             },
             timestamp: Number,
         }
+    ],
+    finalResult: [
+        {
+            player: {
+                type: mongoose_1.default.Schema.Types.ObjectId,
+                ref: 'User'
+            },
+            score: Number
+        }
     ]
 });
 gameModel.statics.findBySlugAndPopulate = function (slug) {
@@ -140,6 +149,9 @@ gameModel.statics.findBySlugAndPopulate = function (slug) {
                         },
                         {
                             path: 'messages.user'
+                        },
+                        {
+                            path: 'finalResult.player'
                         }
                     ])];
                 case 1: return [2 /*return*/, _a.sent()];

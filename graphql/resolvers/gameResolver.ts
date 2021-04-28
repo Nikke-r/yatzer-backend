@@ -17,14 +17,16 @@ import {
     createScoreboardColumn, 
     rollDices, validateScore, 
     calculateSum, 
-    calculateTotal 
+    calculateTotal, 
+    sortFinalResults
 } from "../../utils/helpers";
 import User from '../../models/userModel';
 import pubSub from '../pubsub';
 
 export default {
     Query: {
-        getGame: (_parent: unknown, args: GameArgsBaseType) => Game.findOne({ slug: args.slug }),
+        getGameCount: () => Game.countDocuments({}),
+        getGame: (_parent: unknown, args: GameArgsBaseType) => Game.findBySlugAndPopulate(args.slug),
     },
     Mutation: {
         createGame: async (_parent: unknown, _args: unknown, context: ContextType) => {
@@ -51,6 +53,7 @@ export default {
                     status: 'created',
                     messages: [],
                     createdAt,
+                    finalResult: []
                 });
 
                 if (!populatedUser.games) populatedUser.games = [];
@@ -73,7 +76,7 @@ export default {
                 const populatedUser = await User.findByNameAndPopulate(context.user.username);
                 if (!populatedUser) throw new Error('Something went wrong')
 
-                const game = await Game.findOne({ slug: args.slug }).populate('scoreboard.player');
+                const game = await Game.findBySlugAndPopulate(args.slug);
 
                 if (!game) throw new Error(`Game with slug: ${args.slug} not found!`);
                 if (game.scoreboard.length >= 5) throw new Error('Game is already full');
@@ -100,7 +103,7 @@ export default {
             try {
                 if (!context.user) throw new AuthenticationError('Not authenticated!');
                 
-                const game = await Game.findOne({ slug: args.slug }).populate('inTurn.player').populate('scorecard.player').populate('messages.user');
+                const game = await Game.findBySlugAndPopulate(args.slug);
 
                 if (!game) throw new Error(`Game with slug: ${args.slug} not found!`);
                 if (game.inTurn.player.id !== context.user.id) throw new Error('Not in turn!');
@@ -127,7 +130,7 @@ export default {
             try {
                 if (!context.user) throw new AuthenticationError('Not authenticated!');
 
-                const game = await Game.findOne({ slug: args.slug }).populate('inTurn.player').populate('scorecard.player').populate('messages.user');
+                const game = await Game.findBySlugAndPopulate(args.slug);
 
                 if (!game) throw new Error(`Game with slug: ${args.slug} not found!`);
                 if (game.inTurn.player.id !== context.user.id) throw new Error('Not in turn!');
@@ -148,7 +151,7 @@ export default {
             try {
                 if (!context.user) throw new AuthenticationError('Not authenticated!');
 
-                const game = await Game.findOne({ slug: args.slug }).populate('inTurn.player').populate('scoreboard.player').populate('messages.user');
+                const game = await Game.findBySlugAndPopulate(args.slug);
 
                 if (!game) throw new Error(`Game with slug: ${args.slug} not found`);
                 if (game.inTurn.player.id !== context.user.id) throw new Error('Not in turn');
@@ -201,8 +204,19 @@ export default {
                             scoreboardColumn.rows[17].score = total;
                             scoreboardColumn.rows[17].filled = true;
 
+                            context.user.highestScore = context.user.highestScore < scoreboardColumn.rows[17].score ? scoreboardColumn.rows[17].score : context.user.highestScore;
+                            await context.user.save();
+
                             if (currentPlayerIndex === game.scoreboard.length - 1) {
                                 game.status = GameStatus.Ended;
+
+                                const results = sortFinalResults(game.scoreboard);
+                                game.finalResult = results;
+
+                                if (results.length > 1) {
+                                    results[0].player.wins = results[0].player.wins + 1;
+                                    await results[0].player.save();
+                                }
                             }
                         }
                     }
@@ -224,7 +238,7 @@ export default {
             try {
                 if (!context.user) throw new AuthenticationError('Not authenticated!');
 
-                const game = await Game.findOne({ slug: args.slug }).populate('scoreboard.player').populate('inTurn.player').populate('messages.user');
+                const game = await Game.findBySlugAndPopulate(args.slug);
     
                 if (!game) throw new Error(`Game with slug: ${args.slug} not found!`);
                 if (!game.scoreboard.find(column => column.player.id === context.user.id)) throw new Error(`Not in the game!`);

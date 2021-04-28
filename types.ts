@@ -13,6 +13,8 @@ export interface DatabaseUser extends mongoose.Document {
     friends?: PublicUser[];
     avatarUrl: string;
     notifications: Notifications[];
+    highestScore: number;
+    wins: number;
 }
 
 export enum NotificationTypes {
@@ -86,6 +88,11 @@ export interface ChatMessage {
     message: string;
 }
 
+export interface Result {
+    player: PublicUser;
+    score: number;
+}
+
 export interface GameType extends mongoose.Document {
     id: mongoose.ObjectId;
     slug: string;
@@ -95,6 +102,7 @@ export interface GameType extends mongoose.Document {
     status: GameStatus;
     messages: ChatMessage[];
     createdAt: number;
+    finalResult: Result[];
 }
 
 export interface AuthInputValues {

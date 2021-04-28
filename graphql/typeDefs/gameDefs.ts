@@ -10,6 +10,12 @@ export default gql`
         status: GameStatus!
         messages: [ChatMessage!]!
         createdAt: Float!
+        finalResult: [Result!]!
+    }
+
+    type Result {
+        player: User!
+        score: Int!
     }
 
     type ScoreboardColumn {
@@ -69,6 +75,7 @@ export default gql`
 
     extend type Query {
         getGame(slug: String!): Game
+        getGameCount: Int
     }
 
     extend type Mutation {

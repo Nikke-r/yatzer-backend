@@ -11,6 +11,8 @@ export default gql`
         friends: [User!]!
         avatarUrl: String!
         notifications: [Notifications!]!
+        highestScore: Int
+        wins: Int
     }
 
     enum NotificationTypes {
@@ -34,12 +36,21 @@ export default gql`
         url: String!
     }
 
+    type TopTen {
+        name: String!
+        amount: Int!
+    }
+
     extend type Query {
         getUser(username: String!): User
         getOnlineUsers: [User!]!
         getAllUsers(username: String!): [User!]!
         currentUser: User
         signIn(username: String!, password: String!): User
+        getUserCount: Int
+        mostPlayedGames: [TopTen!]!
+        highestScores: [TopTen!]!
+        mostWins: [TopTen!]!
     }
 
     extend type Mutation {

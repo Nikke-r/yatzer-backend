@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.calculateTotal = exports.calculateSum = exports.validateScore = exports.rollDices = exports.createScoreboardColumn = exports.createGameDices = exports.createSlug = void 0;
+exports.sortFinalResults = exports.calculateTotal = exports.calculateSum = exports.validateScore = exports.rollDices = exports.createScoreboardColumn = exports.createGameDices = exports.createSlug = void 0;
 var types_1 = require("../types");
 var createSlug = function () {
     var alphabets = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -204,3 +204,18 @@ var calculateTotal = function (scoreboardRows) {
     return total;
 };
 exports.calculateTotal = calculateTotal;
+var sortFinalResults = function (scoreboard) {
+    var sorted = scoreboard.sort(function (a, b) {
+        if (a.rows[17].score > b.rows[17].score)
+            return -1;
+        if (a.rows[17].score < b.rows[17].score)
+            return 1;
+        return 0;
+    });
+    var results = sorted.map(function (column) { return ({
+        player: column.player,
+        score: column.rows[17].score
+    }); });
+    return results;
+};
+exports.sortFinalResults = sortFinalResults;

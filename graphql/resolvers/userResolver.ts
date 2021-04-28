@@ -17,6 +17,58 @@ import { ObjectId } from "mongoose";
 
 export default {
     Query: {
+        getUserCount: () => User.countDocuments({}),
+        mostPlayedGames: async () => {
+            try {
+                const docs = await User.find({}, 'username games');
+
+                const sorted = docs.sort((a, b) => {
+                    if (a.games!.length > b.games!.length) return -1;
+                    if (a.games!.length < b.games!.length) return 1;
+                    return 0;
+                });
+
+                const topTen = sorted.splice(0, 10).map(item => ({ name: item.username, amount: item.games!.length }));
+
+                return topTen;
+            } catch (error) {
+                throw new Error(error);
+            }
+        },
+        highestScores: async () => {
+            try {
+                const docs = await User.find({}, 'username highestScore');
+
+                const sorted = docs.sort((a, b) => {
+                    if (a.highestScore > b.highestScore) return -1;
+                    if (a.highestScore < b.highestScore) return 1;
+                    return 0;
+                });
+
+                const topTen = sorted.splice(0, 10).map(item => ({ name: item.username, amount: item.highestScore }));
+
+                return topTen;
+            } catch (error) {
+                throw new Error(error);      
+            }
+        },
+        mostWins: async () => {
+            try {
+                const docs = await User.find({}, 'username wins');
+
+                const sorted = docs.sort((a, b) => {
+                    if (a.wins > b.wins) return -1;
+                    if (a.wins < b.wins) return 1;
+                    return 0;
+                });
+
+                const topTen = sorted.splice(0, 10).map(item => ({ name: item.username, amount: item.wins }));
+
+                return topTen;
+            } catch (error) {
+                throw new Error(error);
+            }
+        },
         getUser: async (_parent: unknown, args: { username: string }) => User.findByNameAndPopulate(args.username),
         getAllUsers: async (_parent: unknown, args: { username: string }, context: ContextType) => {
             try {
@@ -72,6 +124,8 @@ export default {
                     admin: false, 
                     friends: [],
                     avatarUrl: '',
+                    highestScore: 0,
+                    wins: 0,
                 });
 
                 delete user.password;

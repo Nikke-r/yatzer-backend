@@ -58,11 +58,87 @@ var path_1 = __importDefault(require("path"));
 var fs_1 = __importDefault(require("fs"));
 exports.default = {
     Query: {
+        getUserCount: function () { return userModel_1.default.countDocuments({}); },
+        mostPlayedGames: function () { return __awaiter(void 0, void 0, void 0, function () {
+            var docs, sorted, topTen, error_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, userModel_1.default.find({}, 'username games')];
+                    case 1:
+                        docs = _a.sent();
+                        sorted = docs.sort(function (a, b) {
+                            if (a.games.length > b.games.length)
+                                return -1;
+                            if (a.games.length < b.games.length)
+                                return 1;
+                            return 0;
+                        });
+                        topTen = sorted.splice(0, 10).map(function (item) { return ({ name: item.username, amount: item.games.length }); });
+                        return [2 /*return*/, topTen];
+                    case 2:
+                        error_1 = _a.sent();
+                        throw new Error(error_1);
+                    case 3: return [2 /*return*/];
+                }
+            });
+        }); },
+        highestScores: function () { return __awaiter(void 0, void 0, void 0, function () {
+            var docs, sorted, topTen, error_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, userModel_1.default.find({}, 'username highestScore')];
+                    case 1:
+                        docs = _a.sent();
+                        sorted = docs.sort(function (a, b) {
+                            if (a.highestScore > b.highestScore)
+                                return -1;
+                            if (a.highestScore < b.highestScore)
+                                return 1;
+                            return 0;
+                        });
+                        topTen = sorted.splice(0, 10).map(function (item) { return ({ name: item.username, amount: item.highestScore }); });
+                        return [2 /*return*/, topTen];
+                    case 2:
+                        error_2 = _a.sent();
+                        throw new Error(error_2);
+                    case 3: return [2 /*return*/];
+                }
+            });
+        }); },
+        mostWins: function () { return __awaiter(void 0, void 0, void 0, function () {
+            var docs, sorted, topTen, error_3;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, userModel_1.default.find({}, 'username wins')];
+                    case 1:
+                        docs = _a.sent();
+                        sorted = docs.sort(function (a, b) {
+                            if (a.wins > b.wins)
+                                return -1;
+                            if (a.wins < b.wins)
+                                return 1;
+                            return 0;
+                        });
+                        topTen = sorted.splice(0, 10).map(function (item) { return ({ name: item.username, amount: item.wins }); });
+                        return [2 /*return*/, topTen];
+                    case 2:
+                        error_3 = _a.sent();
+                        throw new Error(error_3);
+                    case 3: return [2 /*return*/];
+                }
+            });
+        }); },
         getUser: function (_parent, args) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
             return [2 /*return*/, userModel_1.default.findByNameAndPopulate(args.username)];
         }); }); },
         getAllUsers: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
-            var currentUser, users, error_1;
+            var currentUser, users, error_4;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -77,15 +153,15 @@ exports.default = {
                             throw new Error('Did not find users');
                         return [2 /*return*/, users.filter(function (user) { return user.username.toLowerCase().includes(args.username.toLowerCase()); })];
                     case 2:
-                        error_1 = _a.sent();
-                        throw new Error(error_1.message);
+                        error_4 = _a.sent();
+                        throw new Error(error_4.message);
                     case 3: return [2 /*return*/];
                 }
             });
         }); },
         currentUser: function (_parent, _args, context) { return userModel_1.default.findByNameAndPopulate(context.user.username); },
         signIn: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
-            var req, res, loginResponse, responseUser, error_2;
+            var req, res, loginResponse, responseUser, error_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -100,8 +176,8 @@ exports.default = {
                         responseUser = _a.sent();
                         return [2 /*return*/, __assign(__assign({}, loginResponse.user), { id: responseUser.id, notifications: responseUser.notifications, friends: responseUser.friends, games: responseUser.games, token: loginResponse.token })];
                     case 3:
-                        error_2 = _a.sent();
-                        throw new Error(error_2);
+                        error_5 = _a.sent();
+                        throw new Error(error_5);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -109,7 +185,7 @@ exports.default = {
     },
     Mutation: {
         signUp: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
-            var username, password, hashedPassword, createdAt, user, error_3;
+            var username, password, hashedPassword, createdAt, user, error_6;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -127,18 +203,20 @@ exports.default = {
                             admin: false,
                             friends: [],
                             avatarUrl: '',
+                            highestScore: 0,
+                            wins: 0,
                         });
                         delete user.password;
                         return [2 /*return*/, user.save()];
                     case 2:
-                        error_3 = _a.sent();
-                        throw new Error(error_3);
+                        error_6 = _a.sent();
+                        throw new Error(error_6);
                     case 3: return [2 /*return*/];
                 }
             });
         }); },
         addProfilePicture: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
-            var currentUser, _a, createReadStream, filename, ext, stream, pathName, error_4;
+            var currentUser, _a, createReadStream, filename, ext, stream, pathName, error_7;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -166,8 +244,8 @@ exports.default = {
                                 url: "http://localhost:3001/public/avatars/" + context.user.username + ext
                             }];
                     case 5:
-                        error_4 = _b.sent();
-                        throw new Error(error_4.message);
+                        error_7 = _b.sent();
+                        throw new Error(error_7.message);
                     case 6: return [2 /*return*/];
                 }
             });
@@ -206,7 +284,7 @@ exports.default = {
             });
         }); },
         dismissNotification: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
-            var populatedUser, error_5;
+            var populatedUser, error_8;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -225,14 +303,14 @@ exports.default = {
                         pubsub_1.default.publish(populatedUser.username, { userDataChanged: populatedUser });
                         return [2 /*return*/, populatedUser];
                     case 3:
-                        error_5 = _a.sent();
-                        throw new Error(error_5);
+                        error_8 = _a.sent();
+                        throw new Error(error_8);
                     case 4: return [2 /*return*/];
                 }
             });
         }); },
         acceptFriendRequest: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
-            var populatedUser, request, sender, error_6;
+            var populatedUser, request, sender, error_9;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -269,8 +347,8 @@ exports.default = {
                         pubsub_1.default.publish(sender.username, { userDataChanged: sender });
                         return [2 /*return*/, populatedUser];
                     case 5:
-                        error_6 = _a.sent();
-                        throw new Error(error_6);
+                        error_9 = _a.sent();
+                        throw new Error(error_9);
                     case 6: return [2 /*return*/];
                 }
             });

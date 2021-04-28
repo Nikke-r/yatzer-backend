@@ -52,7 +52,8 @@ var userModel_1 = __importDefault(require("../../models/userModel"));
 var pubsub_1 = __importDefault(require("../pubsub"));
 exports.default = {
     Query: {
-        getGame: function (_parent, args) { return gameModel_1.default.findOne({ slug: args.slug }); },
+        getGameCount: function () { return gameModel_1.default.countDocuments({}); },
+        getGame: function (_parent, args) { return gameModel_1.default.findBySlugAndPopulate(args.slug); },
     },
     Mutation: {
         createGame: function (_parent, _args, context) { return __awaiter(void 0, void 0, void 0, function () {
@@ -84,6 +85,7 @@ exports.default = {
                             status: 'created',
                             messages: [],
                             createdAt: createdAt,
+                            finalResult: []
                         });
                         if (!populatedUser.games)
                             populatedUser.games = [];
@@ -113,7 +115,7 @@ exports.default = {
                         populatedUser = _a.sent();
                         if (!populatedUser)
                             throw new Error('Something went wrong');
-                        return [4 /*yield*/, gameModel_1.default.findOne({ slug: args.slug }).populate('scoreboard.player')];
+                        return [4 /*yield*/, gameModel_1.default.findBySlugAndPopulate(args.slug)];
                     case 2:
                         game = _a.sent();
                         if (!game)
@@ -150,7 +152,7 @@ exports.default = {
                         _a.trys.push([0, 4, , 5]);
                         if (!context.user)
                             throw new apollo_server_express_1.AuthenticationError('Not authenticated!');
-                        return [4 /*yield*/, gameModel_1.default.findOne({ slug: args.slug }).populate('inTurn.player').populate('scorecard.player').populate('messages.user')];
+                        return [4 /*yield*/, gameModel_1.default.findBySlugAndPopulate(args.slug)];
                     case 1:
                         game = _a.sent();
                         if (!game)
@@ -188,7 +190,7 @@ exports.default = {
                         _a.trys.push([0, 3, , 4]);
                         if (!context.user)
                             throw new apollo_server_express_1.AuthenticationError('Not authenticated!');
-                        return [4 /*yield*/, gameModel_1.default.findOne({ slug: args.slug }).populate('inTurn.player').populate('scorecard.player').populate('messages.user')];
+                        return [4 /*yield*/, gameModel_1.default.findBySlugAndPopulate(args.slug)];
                     case 1:
                         game = _a.sent();
                         if (!game)
@@ -211,14 +213,14 @@ exports.default = {
             });
         }); },
         postScore: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
-            var game_1, score, scoreboardColumn, scoreboardRow, currentPlayerIndex, scoreCopy, upperSection, sum, lowerSection, total, error_5;
+            var game_1, score, scoreboardColumn, scoreboardRow, currentPlayerIndex, scoreCopy, upperSection, sum, lowerSection, total, results, error_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 2, , 3]);
+                        _a.trys.push([0, 5, , 6]);
                         if (!context.user)
                             throw new apollo_server_express_1.AuthenticationError('Not authenticated!');
-                        return [4 /*yield*/, gameModel_1.default.findOne({ slug: args.slug }).populate('inTurn.player').populate('scoreboard.player').populate('messages.user')];
+                        return [4 /*yield*/, gameModel_1.default.findBySlugAndPopulate(args.slug)];
                     case 1:
                         game_1 = _a.sent();
                         if (!game_1)
@@ -231,53 +233,62 @@ exports.default = {
                             throw new Error('Cannot post score to this row');
                         score = helpers_1.validateScore(game_1.dices, args.rowName);
                         scoreboardColumn = game_1.scoreboard.find(function (column) { return column.player.id === context.user.id; });
-                        if (scoreboardColumn) {
-                            scoreboardRow = scoreboardColumn.rows.find(function (row) { return row.name === args.rowName; });
-                            if (scoreboardRow) {
-                                if (scoreboardRow.filled) {
-                                    throw new Error('Field already filled!');
-                                }
-                                scoreboardRow.score = score;
-                                scoreboardRow.filled = true;
-                                currentPlayerIndex = game_1.scoreboard.findIndex(function (column) { return column.player.id === game_1.inTurn.player.id; });
-                                game_1.inTurn.player = currentPlayerIndex === game_1.scoreboard.length - 1 ? game_1.scoreboard[0].player : game_1.scoreboard[currentPlayerIndex + 1].player;
-                                game_1.inTurn.numberOfThrows = 0;
-                                scoreCopy = __spreadArray([], scoreboardColumn.rows);
-                                upperSection = scoreCopy.splice(0, 6);
-                                sum = helpers_1.calculateSum(upperSection);
-                                if (sum) {
-                                    scoreboardColumn.rows[6].score = sum;
-                                    scoreboardColumn.rows[6].filled = true;
-                                    if (sum >= 63) {
-                                        scoreboardColumn.rows[7].score = 50;
-                                        scoreboardColumn.rows[7].filled = true;
-                                    }
-                                    else {
-                                        scoreboardColumn.rows[7].score = 0;
-                                        scoreboardColumn.rows[7].filled = true;
-                                    }
-                                }
-                                lowerSection = scoreCopy.splice(0, 11);
-                                total = helpers_1.calculateTotal(lowerSection);
-                                if (total) {
-                                    scoreboardColumn.rows[17].score = total;
-                                    scoreboardColumn.rows[17].filled = true;
-                                    if (currentPlayerIndex === game_1.scoreboard.length - 1) {
-                                        game_1.status = types_1.GameStatus.Ended;
-                                    }
-                                }
+                        if (!scoreboardColumn) return [3 /*break*/, 4];
+                        scoreboardRow = scoreboardColumn.rows.find(function (row) { return row.name === args.rowName; });
+                        if (!scoreboardRow) return [3 /*break*/, 4];
+                        if (scoreboardRow.filled) {
+                            throw new Error('Field already filled!');
+                        }
+                        scoreboardRow.score = score;
+                        scoreboardRow.filled = true;
+                        currentPlayerIndex = game_1.scoreboard.findIndex(function (column) { return column.player.id === game_1.inTurn.player.id; });
+                        game_1.inTurn.player = currentPlayerIndex === game_1.scoreboard.length - 1 ? game_1.scoreboard[0].player : game_1.scoreboard[currentPlayerIndex + 1].player;
+                        game_1.inTurn.numberOfThrows = 0;
+                        scoreCopy = __spreadArray([], scoreboardColumn.rows);
+                        upperSection = scoreCopy.splice(0, 6);
+                        sum = helpers_1.calculateSum(upperSection);
+                        if (sum) {
+                            scoreboardColumn.rows[6].score = sum;
+                            scoreboardColumn.rows[6].filled = true;
+                            if (sum >= 63) {
+                                scoreboardColumn.rows[7].score = 50;
+                                scoreboardColumn.rows[7].filled = true;
+                            }
+                            else {
+                                scoreboardColumn.rows[7].score = 0;
+                                scoreboardColumn.rows[7].filled = true;
                             }
                         }
+                        lowerSection = scoreCopy.splice(0, 11);
+                        total = helpers_1.calculateTotal(lowerSection);
+                        if (!total) return [3 /*break*/, 4];
+                        scoreboardColumn.rows[17].score = total;
+                        scoreboardColumn.rows[17].filled = true;
+                        context.user.highestScore = context.user.highestScore < scoreboardColumn.rows[17].score ? scoreboardColumn.rows[17].score : context.user.highestScore;
+                        return [4 /*yield*/, context.user.save()];
+                    case 2:
+                        _a.sent();
+                        if (!(currentPlayerIndex === game_1.scoreboard.length - 1)) return [3 /*break*/, 4];
+                        game_1.status = types_1.GameStatus.Ended;
+                        results = helpers_1.sortFinalResults(game_1.scoreboard);
+                        game_1.finalResult = results;
+                        if (!(results.length > 1)) return [3 /*break*/, 4];
+                        results[0].player.wins = results[0].player.wins + 1;
+                        return [4 /*yield*/, results[0].player.save()];
+                    case 3:
+                        _a.sent();
+                        _a.label = 4;
+                    case 4:
                         game_1.dices = game_1.dices.map(function (dice) {
                             dice.selected = false;
                             return dice;
                         });
                         pubsub_1.default.publish(args.slug, { gameDataChanged: game_1 });
                         return [2 /*return*/, game_1.save()];
-                    case 2:
+                    case 5:
                         error_5 = _a.sent();
                         throw new Error(error_5);
-                    case 3: return [2 /*return*/];
+                    case 6: return [2 /*return*/];
                 }
             });
         }); },
@@ -289,7 +300,7 @@ exports.default = {
                         _a.trys.push([0, 2, , 3]);
                         if (!context.user)
                             throw new apollo_server_express_1.AuthenticationError('Not authenticated!');
-                        return [4 /*yield*/, gameModel_1.default.findOne({ slug: args.slug }).populate('scoreboard.player').populate('inTurn.player').populate('messages.user')];
+                        return [4 /*yield*/, gameModel_1.default.findBySlugAndPopulate(args.slug)];
                     case 1:
                         game = _a.sent();
                         if (!game)

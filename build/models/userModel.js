@@ -92,7 +92,9 @@ var userModel = new mongoose_1.default.Schema({
             },
             slug: String
         }
-    ]
+    ],
+    highestScore: Number,
+    wins: Number,
 });
 userModel.statics.findByNameAndPopulate = function (username) {
     return __awaiter(this, void 0, void 0, function () {
