@@ -378,6 +378,9 @@ exports.default = {
     ChatMessage: {
         user: function (parent) { return userModel_1.default.findById(parent.user, '-password'); }
     },
+    Result: {
+        player: function (parent) { return userModel_1.default.findById(parent.player, '-password'); },
+    },
     Subscription: {
         userDataChanged: {
             subscribe: function (_parent, args) { return pubsub_1.default.asyncIterator([args.username]); }

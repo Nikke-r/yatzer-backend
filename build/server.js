@@ -91,16 +91,6 @@ var path_1 = __importDefault(require("path"));
                             });
                         });
                     },
-                    subscriptions: {
-                        onConnect: function (connectionParams) { return __awaiter(void 0, void 0, void 0, function () {
-                            return __generator(this, function (_a) {
-                                if (!connectionParams.token) {
-                                    throw new apollo_server_express_1.AuthenticationError('Not authenticated');
-                                }
-                                return [2 /*return*/];
-                            });
-                        }); },
-                    },
                 });
                 return [4 /*yield*/, server.start()];
             case 2:

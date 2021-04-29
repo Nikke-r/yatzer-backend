@@ -37,13 +37,6 @@ import path from 'path';
                     return null;
                 }
             },
-            subscriptions: {
-                onConnect: async (connectionParams: any) => {
-                    if (!connectionParams.token) {
-                        throw new AuthenticationError('Not authenticated');
-                    } 
-                },
-            },
         });
 
         await server.start();

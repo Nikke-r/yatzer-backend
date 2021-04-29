@@ -6,6 +6,7 @@ import {
     InTurnPlayer, 
     NotificationTypes, 
     PublicUser, 
+    Result, 
     ScoreboardColumn 
 } from "../../types";
 import { login } from "../../passport/authentication";
@@ -195,7 +196,7 @@ export default {
                     toUser.notifications = toUser.notifications.concat({ type: args.type, from: context.user, slug: args.slug });
     
                     await toUser.save();
-    
+
                     pubSub.publish(toUser.username, { userDataChanged: toUser });
                 });
 
@@ -215,7 +216,7 @@ export default {
                 populatedUser.notifications = populatedUser.notifications.filter(notification => notification.id !== args.id);
 
                 await populatedUser.save();
-
+                
                 pubSub.publish(populatedUser.username, { userDataChanged: populatedUser });
 
                 return populatedUser;
@@ -264,6 +265,9 @@ export default {
     },
     ChatMessage: {
         user: (parent: ChatMessage) => User.findById(parent.user, '-password')
+    },
+    Result: {
+        player: (parent: Result) => User.findById(parent.player, '-password'),
     },
     Subscription: {
         userDataChanged: {
