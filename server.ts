@@ -6,8 +6,8 @@ import typeDefs from './graphql/typeDefs';
 import resolvers from './graphql/resolvers';
 import { checkAuthentication } from './passport/authentication';
 import cors from 'cors';
-import http from 'http';
 import path from 'path';
+import helmet from 'helmet';
 
 (async () => {
     try {
@@ -15,6 +15,10 @@ import path from 'path';
 
         const app = express();
         app.use(cors());
+        app.use(helmet({
+            ieNoOpen: false,
+            contentSecurityPolicy: false
+        }));
         app.use("/public/avatars", express.static(path.join(__dirname, "public/avatars")));
 
         const server = new ApolloServer({
@@ -40,12 +44,17 @@ import path from 'path';
         });
 
         await server.start();
-        server.applyMiddleware({ app, cors: false });
+        server.applyMiddleware({ app, cors: false, path: '/graphql' });
 
-        const httpServer = http.createServer(app);
-        server.installSubscriptionHandlers(httpServer);
+        process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
-        httpServer.listen((process.env.PORT || 3001), () => console.log(`Server running!`));
+        if (process.env.NODE_ENV === 'production') {
+            const { default: production } = await import('./security/production');
+            production(app, (process.env.PORT || 3001));
+        } else {
+            const { default: localhost } = await import('./security/localhost');
+            localhost(app, 8000, 3001, server);
+        }
     } catch (error) {
         console.log(`Error while starting the server: ${error.message}`);
     }

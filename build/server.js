@@ -1,4 +1,23 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -47,19 +66,23 @@ var typeDefs_1 = __importDefault(require("./graphql/typeDefs"));
 var resolvers_1 = __importDefault(require("./graphql/resolvers"));
 var authentication_1 = require("./passport/authentication");
 var cors_1 = __importDefault(require("cors"));
-var http_1 = __importDefault(require("http"));
 var path_1 = __importDefault(require("path"));
+var helmet_1 = __importDefault(require("helmet"));
 (function () { return __awaiter(void 0, void 0, void 0, function () {
-    var app, server, httpServer, error_1;
+    var app, server, production, localhost, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
+                _a.trys.push([0, 7, , 8]);
                 return [4 /*yield*/, dbConnection_1.default()];
             case 1:
                 _a.sent();
                 app = express_1.default();
                 app.use(cors_1.default());
+                app.use(helmet_1.default({
+                    ieNoOpen: false,
+                    contentSecurityPolicy: false
+                }));
                 app.use("/public/avatars", express_1.default.static(path_1.default.join(__dirname, "public/avatars")));
                 server = new apollo_server_express_1.ApolloServer({
                     typeDefs: typeDefs_1.default,
@@ -95,16 +118,25 @@ var path_1 = __importDefault(require("path"));
                 return [4 /*yield*/, server.start()];
             case 2:
                 _a.sent();
-                server.applyMiddleware({ app: app, cors: false });
-                httpServer = http_1.default.createServer(app);
-                server.installSubscriptionHandlers(httpServer);
-                httpServer.listen((process.env.PORT || 3001), function () { return console.log("Server running!"); });
-                return [3 /*break*/, 4];
+                server.applyMiddleware({ app: app, cors: false, path: '/graphql' });
+                process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+                if (!(process.env.NODE_ENV === 'production')) return [3 /*break*/, 4];
+                return [4 /*yield*/, Promise.resolve().then(function () { return __importStar(require('./security/production')); })];
             case 3:
+                production = (_a.sent()).default;
+                production(app, (process.env.PORT || 3001));
+                return [3 /*break*/, 6];
+            case 4: return [4 /*yield*/, Promise.resolve().then(function () { return __importStar(require('./security/localhost')); })];
+            case 5:
+                localhost = (_a.sent()).default;
+                localhost(app, 8000, 3001, server);
+                _a.label = 6;
+            case 6: return [3 /*break*/, 8];
+            case 7:
                 error_1 = _a.sent();
                 console.log("Error while starting the server: " + error_1.message);
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 8];
+            case 8: return [2 /*return*/];
         }
     });
 }); })();
