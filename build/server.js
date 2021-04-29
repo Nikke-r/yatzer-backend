@@ -50,7 +50,7 @@ var cors_1 = __importDefault(require("cors"));
 var http_1 = __importDefault(require("http"));
 var path_1 = __importDefault(require("path"));
 (function () { return __awaiter(void 0, void 0, void 0, function () {
-    var app, server_1, httpServer, error_1;
+    var app, server, httpServer, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -61,7 +61,7 @@ var path_1 = __importDefault(require("path"));
                 app = express_1.default();
                 app.use(cors_1.default());
                 app.use("/public/avatars", express_1.default.static(path_1.default.join(__dirname, "public/avatars")));
-                server_1 = new apollo_server_express_1.ApolloServer({
+                server = new apollo_server_express_1.ApolloServer({
                     typeDefs: typeDefs_1.default,
                     resolvers: resolvers_1.default,
                     context: function (_a) {
@@ -102,13 +102,13 @@ var path_1 = __importDefault(require("path"));
                         }); },
                     },
                 });
-                return [4 /*yield*/, server_1.start()];
+                return [4 /*yield*/, server.start()];
             case 2:
                 _a.sent();
-                server_1.applyMiddleware({ app: app, cors: false });
+                server.applyMiddleware({ app: app, cors: false });
                 httpServer = http_1.default.createServer(app);
-                server_1.installSubscriptionHandlers(httpServer);
-                httpServer.listen((process.env.PORT || 3001), function () { return console.log("Server running! GraphQL playground: http://localhost:3001" + server_1.graphqlPath + " | Subscription path: ws://localhost:3001" + server_1.subscriptionsPath); });
+                server.installSubscriptionHandlers(httpServer);
+                httpServer.listen((process.env.PORT || 3001), function () { return console.log("Server running!"); });
                 return [3 /*break*/, 4];
             case 3:
                 error_1 = _a.sent();
