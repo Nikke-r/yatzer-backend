@@ -131,3 +131,9 @@ export interface ScorePostingArgs extends GameArgsBaseType {
 export interface NewMessageArgs extends GameArgsBaseType {
     message: string;
 }
+
+export interface LobbyType extends mongoose.Document {
+    users: PublicUser[];
+    messages: ChatMessage[];
+    name: string,
+}

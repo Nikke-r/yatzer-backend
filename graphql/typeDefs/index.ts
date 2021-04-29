@@ -1,5 +1,6 @@
 import { gql } from 'apollo-server-express';
 import gameDefs from './gameDefs';
+import lobbyDefs from './lobbyDefs';
 import userDefs from './userDefs';
 
 const linkDefs = gql`
@@ -20,4 +21,5 @@ export default [
     linkDefs,
     userDefs,
     gameDefs,
+    lobbyDefs,
 ];
