@@ -12,9 +12,6 @@ export default (app: Express, port: number | string, server: ApolloServer) => {
             res.redirect(`https://${req.headers.host}${req.url}`);
         }
     });
-    const httpsServer = https.createServer(app);
 
-    server.installSubscriptionHandlers(httpsServer);
-
-    httpsServer.listen(port, () => console.log('Server running!'));
+    app.listen(port, () => console.log('Server running!'));
 };
