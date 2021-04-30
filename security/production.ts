@@ -1,6 +1,6 @@
 import { ApolloServer } from 'apollo-server-express';
 import { Request, Response, NextFunction, Express } from 'express';
-import https from 'https';
+import http from 'http';
 
 export default (app: Express, port: number | string, server: ApolloServer) => {
     app.enable('trust proxy');
@@ -13,5 +13,9 @@ export default (app: Express, port: number | string, server: ApolloServer) => {
         }
     });
 
-    app.listen(port, () => console.log('Server running!'));
+    const httpServer = http.createServer(app);
+
+    server.installSubscriptionHandlers(httpServer);
+
+    httpServer.listen(port, () => console.log('Server running!'));
 };
