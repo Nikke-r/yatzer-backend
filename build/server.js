@@ -124,7 +124,7 @@ var helmet_1 = __importDefault(require("helmet"));
                 return [4 /*yield*/, Promise.resolve().then(function () { return __importStar(require('./security/production')); })];
             case 3:
                 production = (_a.sent()).default;
-                production(app, (process.env.PORT || 3001));
+                production(app, (process.env.PORT || 3001), server);
                 return [3 /*break*/, 6];
             case 4: return [4 /*yield*/, Promise.resolve().then(function () { return __importStar(require('./security/localhost')); })];
             case 5:

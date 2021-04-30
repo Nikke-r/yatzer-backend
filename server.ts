@@ -50,7 +50,7 @@ import helmet from 'helmet';
 
         if (process.env.NODE_ENV === 'production') {
             const { default: production } = await import('./security/production');
-            production(app, (process.env.PORT || 3001));
+            production(app, (process.env.PORT || 3001), server);
         } else {
             const { default: localhost } = await import('./security/localhost');
             localhost(app, 8000, 3001, server);
