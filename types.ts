@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 
 export interface DatabaseUser extends mongoose.Document {
-    id: mongoose.ObjectId,
+    id: string,
     username: string;
     password?: string;
     createdAt: number;

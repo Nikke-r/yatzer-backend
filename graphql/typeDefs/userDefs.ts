@@ -56,6 +56,6 @@ export default gql`
     }
 
     extend type Subscription {
-        userDataChanged(username: String!): User
+        userDataChanged(id: ID!): User
     }
 `;

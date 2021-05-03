@@ -175,7 +175,7 @@ export default {
 
                 await currentUser.save();
 
-                pubSub.publish(currentUser.username, { userDataChanged: currentUser });
+                pubSub.publish(currentUser.id, { userDataChanged: currentUser });
 
                 return {
                     url: `http://localhost:3001/public/avatars/${context.user.username}${ext}`
@@ -198,7 +198,7 @@ export default {
     
                     await toUser.save();
 
-                    pubSub.publish(toUser.username, { userDataChanged: toUser });
+                    pubSub.publish(toUser.id, { userDataChanged: toUser });
                 });
 
                 return context.user;
@@ -218,7 +218,7 @@ export default {
 
                 await populatedUser.save();
                 
-                pubSub.publish(populatedUser.username, { userDataChanged: populatedUser });
+                pubSub.publish(populatedUser.id, { userDataChanged: populatedUser });
 
                 return populatedUser;
             } catch (error) {
@@ -249,8 +249,8 @@ export default {
                 await populatedUser.save();
                 await sender.save();
 
-                pubSub.publish(populatedUser.username, { userDataChanged: populatedUser });
-                pubSub.publish(sender.username, { userDataChanged: sender });
+                pubSub.publish(populatedUser.id, { userDataChanged: populatedUser });
+                pubSub.publish(sender.id, { userDataChanged: sender });
 
                 return populatedUser;
             } catch (error) {
@@ -265,7 +265,7 @@ export default {
 
                 if (!updatedUser) throw new Error('User not found');
 
-                pubSub.publish(context.user.username, { userDataChanged: updatedUser });
+                pubSub.publish(context.user.id, { userDataChanged: updatedUser });
 
                 return updatedUser;
             } catch (error) {
@@ -287,7 +287,7 @@ export default {
     },
     Subscription: {
         userDataChanged: {
-            subscribe: (_parent: unknown, args: { username: string }) => pubSub.asyncIterator<PublicUser>([args.username])
+            subscribe: (_parent: unknown, args: { id: string }) => pubSub.asyncIterator<PublicUser>([args.id])
         }
     }
 }

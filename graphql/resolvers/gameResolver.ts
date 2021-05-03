@@ -61,7 +61,7 @@ export default {
                 
                 await populatedUser.save();
 
-                pubSub.publish(populatedUser.username, { userDataChanged: populatedUser });
+                pubSub.publish(populatedUser.id, { userDataChanged: populatedUser });
 
                 return newGame.save();
             } catch (error) {
@@ -91,7 +91,7 @@ export default {
 
                 await populatedUser.save();
 
-                pubSub.publish(populatedUser.username, { userDataChanged: populatedUser });
+                pubSub.publish(populatedUser.id, { userDataChanged: populatedUser });
                 pubSub.publish(args.slug, { gameDataChanged: game });
 
                 return game.save();
