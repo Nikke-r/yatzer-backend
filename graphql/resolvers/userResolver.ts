@@ -98,9 +98,9 @@ export default {
 
                 const users = await User.find({});
 
-                if (!users) throw new Error('Did not find users')
+                if (!users) throw new Error('Did not find users');
 
-                return users.filter(user => user.username.toLowerCase().includes(args.username.toLowerCase()))
+                return users.filter(user => user.username.toLowerCase().includes(args.username.toLowerCase()));
             } catch (error) {
                 throw new Error(error.message);
             }
@@ -142,7 +142,6 @@ export default {
                     createdAt, 
                     password: hashedPassword, 
                     games: [], 
-                    admin: false, 
                     friends: [],
                     avatarUrl: '',
                     highestScore: 0,
@@ -169,6 +168,8 @@ export default {
                 const stream = createReadStream();
                 const pathName = path.join(__dirname, `../../public/avatars/${context.user.username}${ext}`);
                 await stream.pipe(fs.createWriteStream(pathName));
+
+                //Not in use in the production yet, since I am missing an image bucket where to store the images
 
                 currentUser.avatarUrl = `http://localhost:3001/public/avatars/${context.user.username}${ext}`;
 
@@ -252,6 +253,21 @@ export default {
                 pubSub.publish(sender.username, { userDataChanged: sender });
 
                 return populatedUser;
+            } catch (error) {
+                throw new Error(error);
+            }
+        },
+        editProfile: async (_parent: unknown, args: { username: string }, context: ContextType) => {
+            try {
+                if (!context.user) throw new Error('Not authenticated');
+
+                const updatedUser = await User.findOneAndUpdate({ username: context.user.username }, { ...args }, { new: true });
+
+                if (!updatedUser) throw new Error('User not found');
+
+                pubSub.publish(context.user.username, { userDataChanged: updatedUser });
+
+                return updatedUser;
             } catch (error) {
                 throw new Error(error);
             }

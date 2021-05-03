@@ -21,16 +21,6 @@ const userModel = new mongoose.Schema({
             ref: 'Game'
         }
     ],
-    status: {
-        type: String,
-        default: 'online',
-        enum: [
-            "online",
-            "offline"
-        ]
-    },
-    admin: Boolean,
-    socketId: String,
     friends: [
         {
             type: mongoose.Schema.Types.ObjectId,

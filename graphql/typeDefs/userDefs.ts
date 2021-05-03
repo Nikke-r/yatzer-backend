@@ -7,7 +7,6 @@ export default gql`
         createdAt: Float!
         games: [Game!]!
         token: String
-        status: Status!
         friends: [User!]!
         avatarUrl: String!
         notifications: [Notifications!]!
@@ -27,11 +26,6 @@ export default gql`
         slug: String
     }
 
-    enum Status {
-        online
-        offline
-    }
-
     type File {
         url: String!
     }
@@ -43,7 +37,6 @@ export default gql`
 
     extend type Query {
         getUser(username: String!): User
-        getOnlineUsers: [User!]!
         getAllUsers(username: String!): [User!]!
         currentUser: User
         signIn(username: String!, password: String!): User
@@ -59,6 +52,7 @@ export default gql`
         sendNotification(type: NotificationTypes!, to: [String!]!, slug: String): User
         dismissNotification(id: ID!): User
         acceptFriendRequest(id: ID!): User
+        editProfile(username: String!): User
     }
 
     extend type Subscription {

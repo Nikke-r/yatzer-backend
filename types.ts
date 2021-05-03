@@ -7,9 +7,6 @@ export interface DatabaseUser extends mongoose.Document {
     password?: string;
     createdAt: number;
     games?: GameType[];
-    status: 'online' | 'offline';
-    admin: boolean;
-    socketId?: string;
     friends?: PublicUser[];
     avatarUrl: string;
     notifications: Notifications[];
