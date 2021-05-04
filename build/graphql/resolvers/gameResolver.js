@@ -93,7 +93,7 @@ exports.default = {
                         return [4 /*yield*/, populatedUser.save()];
                     case 2:
                         _a.sent();
-                        pubsub_1.default.publish(populatedUser.username, { userDataChanged: populatedUser });
+                        pubsub_1.default.publish(populatedUser.id, { userDataChanged: populatedUser });
                         return [2 /*return*/, newGame.save()];
                     case 3:
                         error_1 = _a.sent();
@@ -134,7 +134,7 @@ exports.default = {
                         return [4 /*yield*/, populatedUser.save()];
                     case 3:
                         _a.sent();
-                        pubsub_1.default.publish(populatedUser.username, { userDataChanged: populatedUser });
+                        pubsub_1.default.publish(populatedUser.id, { userDataChanged: populatedUser });
                         pubsub_1.default.publish(args.slug, { gameDataChanged: game });
                         return [2 /*return*/, game.save()];
                     case 4:

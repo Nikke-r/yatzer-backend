@@ -36,7 +36,7 @@ export default {
                 throw new Error(error);
             }
         },
-        removeUserFromLobby: async (_parent: unknown, _args: unknown, context: ContextType) => {
+        removeUserFromLobby: async (_parent: unknown, args: { username: string }, context: ContextType) => {
             try {
                 if (!context.user) throw new Error('Not authenticated');
 
@@ -44,10 +44,10 @@ export default {
 
                 if (!lobby) throw new Error('Lobby not find');
 
-                lobby.users = lobby.users.filter(user => user.username !== context.user.username);
+                lobby.users = lobby.users.filter(user => user.username !== args.username);
 
                 await lobby.save();
-                
+
                 pubSub.publish('general', { lobbyDataChanged: lobby });
 
                 return lobby;

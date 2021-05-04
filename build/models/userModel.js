@@ -60,16 +60,6 @@ var userModel = new mongoose_1.default.Schema({
             ref: 'Game'
         }
     ],
-    status: {
-        type: String,
-        default: 'online',
-        enum: [
-            "online",
-            "offline"
-        ]
-    },
-    admin: Boolean,
-    socketId: String,
     friends: [
         {
             type: mongoose_1.default.Schema.Types.ObjectId,

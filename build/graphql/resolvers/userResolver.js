@@ -215,7 +215,6 @@ exports.default = {
                             createdAt: createdAt,
                             password: hashedPassword,
                             games: [],
-                            admin: false,
                             friends: [],
                             avatarUrl: '',
                             highestScore: 0,
@@ -250,11 +249,12 @@ exports.default = {
                         return [4 /*yield*/, stream.pipe(fs_1.default.createWriteStream(pathName))];
                     case 3:
                         _b.sent();
+                        //Not in use in the production yet, since I am missing an image bucket where to store the images
                         currentUser.avatarUrl = "http://localhost:3001/public/avatars/" + context.user.username + ext;
                         return [4 /*yield*/, currentUser.save()];
                     case 4:
                         _b.sent();
-                        pubsub_1.default.publish(currentUser.username, { userDataChanged: currentUser });
+                        pubsub_1.default.publish(currentUser.id, { userDataChanged: currentUser });
                         return [2 /*return*/, {
                                 url: "http://localhost:3001/public/avatars/" + context.user.username + ext
                             }];
@@ -285,7 +285,7 @@ exports.default = {
                                     return [4 /*yield*/, toUser.save()];
                                 case 2:
                                     _a.sent();
-                                    pubsub_1.default.publish(toUser.username, { userDataChanged: toUser });
+                                    pubsub_1.default.publish(toUser.id, { userDataChanged: toUser });
                                     return [2 /*return*/];
                             }
                         });
@@ -315,7 +315,7 @@ exports.default = {
                         return [4 /*yield*/, populatedUser.save()];
                     case 2:
                         _a.sent();
-                        pubsub_1.default.publish(populatedUser.username, { userDataChanged: populatedUser });
+                        pubsub_1.default.publish(populatedUser.id, { userDataChanged: populatedUser });
                         return [2 /*return*/, populatedUser];
                     case 3:
                         error_8 = _a.sent();
@@ -358,13 +358,35 @@ exports.default = {
                         return [4 /*yield*/, sender.save()];
                     case 4:
                         _a.sent();
-                        pubsub_1.default.publish(populatedUser.username, { userDataChanged: populatedUser });
-                        pubsub_1.default.publish(sender.username, { userDataChanged: sender });
+                        pubsub_1.default.publish(populatedUser.id, { userDataChanged: populatedUser });
+                        pubsub_1.default.publish(sender.id, { userDataChanged: sender });
                         return [2 /*return*/, populatedUser];
                     case 5:
                         error_9 = _a.sent();
                         throw new Error(error_9);
                     case 6: return [2 /*return*/];
+                }
+            });
+        }); },
+        editProfile: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
+            var updatedUser, error_10;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        if (!context.user)
+                            throw new Error('Not authenticated');
+                        return [4 /*yield*/, userModel_1.default.findOneAndUpdate({ username: context.user.username }, __assign({}, args), { new: true })];
+                    case 1:
+                        updatedUser = _a.sent();
+                        if (!updatedUser)
+                            throw new Error('User not found');
+                        pubsub_1.default.publish(context.user.id, { userDataChanged: updatedUser });
+                        return [2 /*return*/, updatedUser];
+                    case 2:
+                        error_10 = _a.sent();
+                        throw new Error(error_10);
+                    case 3: return [2 /*return*/];
                 }
             });
         }); }
@@ -383,7 +405,7 @@ exports.default = {
     },
     Subscription: {
         userDataChanged: {
-            subscribe: function (_parent, args) { return pubsub_1.default.asyncIterator([args.username]); }
+            subscribe: function (_parent, args) { return pubsub_1.default.asyncIterator([args.id]); }
         }
     }
 };

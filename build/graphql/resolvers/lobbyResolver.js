@@ -90,7 +90,7 @@ exports.default = {
                 }
             });
         }); },
-        removeUserFromLobby: function (_parent, _args, context) { return __awaiter(void 0, void 0, void 0, function () {
+        removeUserFromLobby: function (_parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
             var lobby, error_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -103,7 +103,7 @@ exports.default = {
                         lobby = _a.sent();
                         if (!lobby)
                             throw new Error('Lobby not find');
-                        lobby.users = lobby.users.filter(function (user) { return user.username !== context.user.username; });
+                        lobby.users = lobby.users.filter(function (user) { return user.username !== args.username; });
                         return [4 /*yield*/, lobby.save()];
                     case 2:
                         _a.sent();
